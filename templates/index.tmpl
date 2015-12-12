@@ -24,18 +24,20 @@
                 {{ range $index, $element := .all }}
                 <a class="ui card {{ if .Up }}green{{ else }}red{{ end }}" href="{{ .URL }}">
                     <div class="content">
-                        <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}"{{ end }}>
+                        <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" {{ end }}>
                         <div class="header">{{ .Name }}</div>
                         <div class="meta">{{ .ShortURL }}</div>
                     </div>
                     <div class="extra content">
-                        {{ if .Up }}
+                        {{ if .RespTime }}
+                        <i class="setting icon"></i> {{ .RespTime }}
+                        <br /> {{ end }} {{ if .Up }}
                         <span class="right floated">
-                            <i class="check icon green"></i>
+                            <p style="color:#21BA45;">{{ .Status }} <i class="check icon green"></i></p>
                         </span>
                         {{ else }}
                         <span class="right floated">
-                            <i class="remove icon red"></i>
+                            <p style="color:#DB2828;">{{ .Status }}<i class="remove icon red"></i></p>
                         </span>
                         {{ end }}
                         <i class="wait icon"></i> {{ .Last }}
@@ -45,6 +47,7 @@
             </div>
         </div>
     </main>
+    <script src="static/js/jquery.min.js"></script>
     <script src="static/semantic/semantic.min.js"></script>
 </body>
 

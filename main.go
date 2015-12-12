@@ -23,23 +23,7 @@ func periodicHostUpdate() {
 	}}
 	for {
 		for _, host := range all {
-			go func(h *models.Host) {
-				log.Println("Checking host", h.Name)
-				h.Last = time.Now().Format("2006/01/02 15:04:05")
-				req, err := http.NewRequest("GET", h.URL, nil)
-				if err != nil {
-					h.Up = false
-					return
-				}
-				resp, err := client.Do(req)
-				if err != nil || resp.StatusCode != 200 {
-					h.Up = false
-					return
-				}
-				log.Println("Host", h.Name, "is UP")
-				h.Up = true
-			}(host)
-			log.Println(&host)
+			go host.Check(client)
 		}
 		<-tc.C
 	}
@@ -58,9 +42,16 @@ func main() {
 	cnf := configuration.C
 	all = make(models.Hosts, len(cnf.Hosts))
 	for i, h := range cnf.Hosts {
-		all[i] = &models.Host{h.Name, h.URL, h.ShortURL, time.Now().Format("2006/01/02 15:04:05"), false, "/static/custom/" + h.Icon}
+		all[i] = &models.Host{
+			Name:     h.Name,
+			URL:      h.URL,
+			ShortURL: h.ShortURL,
+			Up:       false,
+			Icon:     "/static/custom/" + h.Icon,
+		}
 	}
 	go periodicHostUpdate()
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./assets")
@@ -77,6 +68,5 @@ func main() {
 		ar.GET("/hosts/new", admin.NewHost)
 		ar.POST("/hosts/new", admin.PostNewHost)
 	}
-
 	r.Run(":8080")
 }

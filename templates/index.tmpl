@@ -6,6 +6,7 @@
     <title>GoMonit</title>
     <meta name="description" content="GoMonit">
     <meta name="author" content="Depado">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="static/semantic/semantic.min.css">
     <style type="text/css">
         body {
@@ -20,7 +21,7 @@
     <h1 class="ui center aligned header"></h1>
     <main class="ui page grid">
         <div class="row">
-            <div class="ui cards">
+            <div class="ui stackable cards">
                 {{ range $index, $element := .all }}
                 <a class="ui card {{ if .Up }}green{{ else }}red{{ end }}" href="{{ .URL }}">
                     <div class="content">

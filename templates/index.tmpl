@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>GoMonit</title>
+    <meta name="description" content="GoMonit">
+    <meta name="author" content="Depado">
+    <link rel="stylesheet" href="static/semantic/semantic.min.css">
+    <style type="text/css">
+        body {
+            background-image: url("static/img/body_bg.png");
+            background-repeat: repeat;
+            background-color: #DADADA;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 class="ui center aligned header"></h1>
+    <main class="ui page grid">
+        <div class="row">
+            <div class="ui cards">
+                {{ range $index, $element := .all }}
+                <a class="ui card {{ if .Up }}green{{ else }}red{{ end }}" href="{{ .URL }}">
+                    <div class="content">
+                        <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}"{{ end }}>
+                        <div class="header">{{ .Name }}</div>
+                        <div class="meta">{{ .ShortURL }}</div>
+                    </div>
+                    <div class="extra content">
+                        {{ if .Up }}
+                        <span class="right floated">
+                            <i class="check icon green"></i>
+                        </span>
+                        {{ else }}
+                        <span class="right floated">
+                            <i class="remove icon red"></i>
+                        </span>
+                        {{ end }}
+                        <i class="wait icon"></i> {{ .Last }}
+                    </div>
+                </a>
+                {{ end }}
+            </div>
+        </div>
+    </main>
+    <script src="static/semantic/semantic.min.js"></script>
+</body>
+
+</html>

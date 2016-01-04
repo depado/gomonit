@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/Depado/gomonit/models"
 	"github.com/gin-gonic/gin"
 )
@@ -19,5 +21,9 @@ func PostLogin(c *gin.Context) {
 	if c.Bind(&lf) == nil {
 		log.Println("Login :", lf.Login)
 		log.Println("Password :", lf.Password)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(lf.Password), bcrypt.DefaultCost)
+		if err == nil {
+			log.Println(string(hashedPassword))
+		}
 	}
 }

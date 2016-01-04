@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -51,7 +52,7 @@ func main() {
 		}
 	}
 	go periodicHostUpdate()
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./assets")
@@ -68,5 +69,5 @@ func main() {
 		ar.GET("/hosts/new", admin.NewHost)
 		ar.POST("/hosts/new", admin.PostNewHost)
 	}
-	r.Run(":8080")
+	r.Run(fmt.Sprintf("127.0.0.1:%d", cnf.Port))
 }

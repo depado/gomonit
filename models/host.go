@@ -38,6 +38,7 @@ func (h *Host) Check(client *http.Client) {
 		log.Printf("[%s][ERROR] While requesting : %v\n", h.Name, err)
 		return
 	}
+	defer resp.Body.Close()
 	h.Status = resp.StatusCode
 	h.Up = h.Status == 200
 }

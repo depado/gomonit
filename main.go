@@ -15,7 +15,7 @@ import (
 	"github.com/Depado/gomonit/models"
 )
 
-var all models.Hosts
+var all models.Services
 
 func periodicHostUpdate() {
 	tc := time.NewTicker(30 * time.Minute)
@@ -41,14 +41,15 @@ func main() {
 		log.Fatal(err)
 	}
 	cnf := configuration.C
-	all = make(models.Hosts, len(cnf.Hosts))
-	for i, h := range cnf.Hosts {
-		all[i] = &models.Host{
-			Name:     h.Name,
-			URL:      h.URL,
-			ShortURL: h.ShortURL,
+	all = make(models.Services, len(cnf.Services))
+	for i, s := range cnf.Services {
+		all[i] = &models.Service{
+			Name:     s.Name,
+			URL:      s.URL,
+			ShortURL: s.ShortURL,
+			Host:     s.Host,
 			Up:       false,
-			Icon:     "/static/custom/" + h.Icon,
+			Icon:     "/static/custom/" + s.Icon,
 		}
 	}
 	go periodicHostUpdate()

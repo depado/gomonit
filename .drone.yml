@@ -1,0 +1,11 @@
+build:
+  image: armhfbuild/golang:$$GO_VERSION
+  commands:
+    - go get
+    - go build
+    - go test
+
+matrix:
+  GO_VERSION:
+    - 1.6
+    - 1.5

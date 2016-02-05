@@ -32,6 +32,9 @@
                     <div class="extra content">
                         {{ if .RespTime }}
                         <i class="setting icon"></i> {{ .RespTime }}
+                        <span class="right floated">
+                            <p>{{ .Host }} <i class="server icon"></i></p>
+                        </span>
                         <br /> {{ end }} {{ if .Up }}
                         <span class="right floated">
                             <p style="color:#21BA45;">{{ .Status }} <i class="check icon green"></i></p>

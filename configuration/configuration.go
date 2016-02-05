@@ -7,10 +7,11 @@ import (
 )
 
 type configuration struct {
-	Port  int `yaml:"port"`
-	Hosts []struct {
+	Port     int `yaml:"port"`
+	Services []struct {
 		Name     string `yaml:"name"`
 		URL      string `yaml:"url"`
+		Host     string `yaml:host`
 		ShortURL string `yaml:"short_url"`
 		Icon     string `yaml:"icon"`
 	}

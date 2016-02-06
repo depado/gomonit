@@ -41,15 +41,21 @@ func main() {
 		log.Fatal(err)
 	}
 	cnf := configuration.C
+	log.Println(cnf.Services)
 	all = make(models.Services, len(cnf.Services))
 	for i, s := range cnf.Services {
 		all[i] = &models.Service{
-			Name:     s.Name,
-			URL:      s.URL,
-			ShortURL: s.ShortURL,
-			Host:     s.Host,
-			Up:       false,
-			Icon:     "/static/custom/" + s.Icon,
+			Name:            s.Name,
+			URL:             s.URL,
+			ShortURL:        s.ShortURL,
+			Host:            s.Host,
+			BuildAPI:        s.BuildAPI,
+			BuildURL:        s.BuildURL,
+			RepoURL:         s.RepoURL,
+			CurrentBuildURL: s.BuildURL + "0",
+			LastBuild:       "failure",
+			Up:              false,
+			Icon:            "/static/custom/" + s.Icon,
 		}
 	}
 	go periodicHostUpdate()

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -8,19 +10,25 @@ import (
 
 // Service is a single service
 type Service struct {
-	Name     string
-	URL      string
-	ShortURL string
-	Host     string
-	Last     string
-	RespTime time.Duration
-	Status   int
-	Up       bool
-	Icon     string
+	Name            string
+	URL             string
+	ShortURL        string
+	RepoURL         string
+	Host            string
+	BuildAPI        string
+	BuildURL        string
+	CurrentBuildURL string
+	Last            string
+	RespTime        time.Duration
+	Status          int
+	Up              bool
+	Icon            string
+	LastBuild       string
+	LastBuildTime   time.Duration
 }
 
-// Check updates the status of the Host
-func (s *Service) Check(client *http.Client) {
+// CheckStatus checks if the service is running
+func (s *Service) CheckStatus(client *http.Client) {
 	start := time.Now()
 	s.Last = start.Format("2006/01/02 15:04:05")
 	defer func() {
@@ -42,6 +50,38 @@ func (s *Service) Check(client *http.Client) {
 	defer resp.Body.Close()
 	s.Status = resp.StatusCode
 	s.Up = s.Status == 200
+}
+
+// CheckBuild checks the last build
+func (s *Service) CheckBuild(client *http.Client) {
+	req, err := http.NewRequest("GET", s.BuildAPI, nil)
+	if err != nil {
+		log.Printf("[%s][ERROR] While building request for build : %v\n", s.Name, err)
+		return
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("[%s][ERROR] While requesting build status : %v\n", s.Name, err)
+		return
+	}
+	defer resp.Body.Close()
+	var all Builds
+	if err = json.NewDecoder(resp.Body).Decode(&all); err != nil {
+		log.Printf("[%s][ERROR] Couldn't decode response : %v\n", s.Name, err)
+		return
+	}
+	if len(all) > 0 {
+		s.LastBuild = all[0].Status
+		s.CurrentBuildURL = fmt.Sprintf("%s%v", s.BuildURL, all[0].Number)
+	}
+}
+
+// Check updates the status of the Host
+func (s *Service) Check(client *http.Client) {
+	go s.CheckStatus(client)
+	if s.BuildAPI != "" {
+		go s.CheckBuild(client)
+	}
 }
 
 // Services represents a list of services

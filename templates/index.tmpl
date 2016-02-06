@@ -51,8 +51,12 @@
                             {{ if .BuildAPI }}
                             {{ if eq .LastBuild "success" }}
                                 <p><a href="{{ .CurrentBuildURL }}" style="color:#21BA45;">Success <i class="configure icon green"></i></a></p>
-                            {{ else }}
-                                <p><a href="{{ .CurrentBuildURL }}" style="color:#DB2828;">Success <i class="configure icon red"></i></a></p>
+                            {{ end }}
+                            {{ if eq .LastBuild "pending"}}
+                                <p><a href="{{ .CurrentBuildURL }}" style="color:#ffb347;">Pending <i class="configure icon red"></i></a></p>
+                            {{ end }}
+                            {{ if eq .LastBuild "failure"}}
+                                <p><a href="{{ .CurrentBuildURL }}" style="color:#DB2828;">Failure <i class="configure icon red"></i></a></p>
                             {{ end }}
                             {{ else }}
                                 <p>No build <i class="configure icon"></i></p>

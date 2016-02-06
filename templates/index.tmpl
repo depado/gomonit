@@ -18,48 +18,48 @@
 </head>
 
 <body>
-    <h1 class="ui center aligned header"></h1>
     <main class="ui page grid">
         <div class="row">
             <div class="ui stackable cards">
                 {{ range $index, $element := .all }}
                 <div class="ui card {{ if .Up }}green{{ else }}red{{ end }}">
                     <div class="content">
-                        <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" {{ end }}>
+                        <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" alt="{{ .Name }}" {{ end }}>
                         <div class="header">{{ .Name }}</div>
                         <div class="meta"><a href="{{ .URL }}">{{ .ShortURL }}</a></div>
                     </div>
                     <div class="extra content">
-                        {{ if .RespTime }}
-                        <i class="setting icon"></i> {{ .RespTime }}
+                        <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
                         <span class="right floated">
-                            <p>{{ .Host }} <i class="server icon"></i></p>
+                            {{ if .Host }}{{ .Host }}{{ else }}-{{ end}} <i class="server icon"></i>
                         </span>
-                        <br /> {{ end }} {{ if .Up }}
-                        <span class="right floated">
-                            <p style="color:#21BA45;">{{ .Status }} <i class="check icon green"></i></p>
-                        </span> {{ else }}
-                        <span class="right floated">
-                            <p style="color:#DB2828;">{{ .Status }}<i class="remove icon red"></i></p>
-                        </span> {{ end }}
-                        <i class="wait icon"></i> {{ .Last }}
-                        <br /> {{ if .RepoURL }}<a href="{{ .RepoURL }}" style="color:#6A6AFF;"><i class="github alternate icon"></i> Source Code</a>{{ else }}
-                        <i class="github alternate icon"></i> No Source Code
+                        <br />
+                        <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }}
+                        {{ if .Up }}
+                            <span class="right floated" style="color:#21BA45;">{{ .Status }} <i class="check icon"></i></span>
+                        {{ else }}
+                            <span class="right floated" style="color:#DB2828;">{{ .Status }}<i class="remove icon"></i></span>
+                        {{ end }}
+                        <br />
+                        {{ if .RepoURL }}
+                            <a href="{{ .RepoURL }}" style="color:#6A6AFF;"><i class="github alternate icon"></i> Source Code</a>
+                        {{ else }}
+                            <i class="github alternate icon"></i> No Source Code
                         {{ end }}
 
                         <span class="right floated">
                             {{ if .BuildAPI }}
-                            {{ if eq .LastBuild "success" }}
-                                <p><a href="{{ .CurrentBuildURL }}" style="color:#21BA45;">Success <i class="configure icon green"></i></a></p>
-                            {{ end }}
-                            {{ if eq .LastBuild "pending"}}
-                                <p><a href="{{ .CurrentBuildURL }}" style="color:#ffb347;">Pending <i class="configure icon red"></i></a></p>
-                            {{ end }}
-                            {{ if eq .LastBuild "failure"}}
-                                <p><a href="{{ .CurrentBuildURL }}" style="color:#DB2828;">Failure <i class="configure icon red"></i></a></p>
-                            {{ end }}
+                                {{ if eq .LastBuild "success" }}
+                                    <a href="{{ .CurrentBuildURL }}" style="color:#21BA45;">Success <i class="configure icon"></i></a>
+                                {{ end }}
+                                {{ if eq .LastBuild "pending"}}
+                                    <a href="{{ .CurrentBuildURL }}" style="color:#ffb347;">Pending <i class="configure icon"></i></a>
+                                {{ end }}
+                                {{ if eq .LastBuild "failure"}}
+                                    <a href="{{ .CurrentBuildURL }}" style="color:#DB2828;">Failure <i class="configure icon"></i></a>
+                                {{ end }}
                             {{ else }}
-                                <p>No build <i class="configure icon"></i></p>
+                                No build <i class="configure icon"></i>
                             {{ end }}
                         </span>
                     </div>

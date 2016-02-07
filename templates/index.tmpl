@@ -34,10 +34,11 @@
             {{ range $i, $e := .LastBuilds }}
             <div class="event">
                 <div class="label">
-                    <img src="/static/custom/drone.svg">
+                    <img src="{{ .AuthorAvatar }}" alt="drone">
                 </div>
                 <div class="content">
                     <div class="summary">
+                        <span>{{ .Author }} triggered</span>
                         <a class="user" href="{{ $buildurl }}{{ .Number }}" target="_blank">
                             Build #{{ .Number}}
                             {{ if eq .Status "success" }}
@@ -48,11 +49,11 @@
                             {{ end }}
                         </a>
                     </div>
+                    <div class="extra text">
+                        <i class="fork icon"></i> {{ .Branch }}
+                    </div>
                     <div class="meta">
-                        {{ .Commit }}
-                    </div><br />
-                    <div class="meta">
-                        {{ .Message }}
+                        <a href="{{ .LinkURL }}" target="_blank">{{ .Message }}</a>
                     </div>
                 </div>
             </div>
@@ -73,17 +74,16 @@
             {{ range $i, $e := .LastCommits }}
             <div class="event">
                 <div class="label">
-                    <img src="{{ .Author.AvatarURL }}">
+                    <img src="{{ .Author.AvatarURL }}" alt="avatar">
                 </div>
                 <div class="content">
                     <div class="summary">
-                        <a class="user" href="{{ .Author.HTMLURL }}" target="_blank">{{ .Commit.Author.Name }}</a>
+                        <a class="user" href="{{ .Author.HTMLURL }}" target="_blank">{{ .Commit.Author.Name }}</a> authored
                     </div>
                     <div class="meta">
-                        <div class="date"><i class="clock icon"></i> {{ .Commit.Author.Date }}</div>
-                    </div><br />
-                    <div class="meta">
-                        <a href="{{ .HTMLURL }}" target="_blank">{{ .Commit.Message }}</a>
+                        <i class="clock icon"></i> {{ .Commit.Author.Date }}<br />
+                        <i class="chat icon" style="margin-left: 0;"></i> {{ .Commit.CommentCount }} Comments<br />
+                        <a href="{{ .HTMLURL }}" target="_blank" style="margin-left: 0;"><i class="fork icon"></i> {{ .Commit.Message }}</a>
                     </div>
                 </div>
             </div>

@@ -80,7 +80,9 @@ func (s *Service) CheckBuild(client *http.Client) {
 
 // Check updates the status of the Host
 func (s *Service) Check(client *http.Client) {
-	go s.CheckStatus(client)
+	if s.URL != "" {
+		go s.CheckStatus(client)
+	}
 	if s.BuildAPI != "" {
 		go s.CheckBuild(client)
 	}

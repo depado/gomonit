@@ -102,7 +102,7 @@
                         <div class="content">
                             <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" alt="{{ .Name }}" {{ end }}>
                             <div class="header">{{ .Name }}</div>
-                            <div class="meta"><a href="{{ .URL }}">{{ .ShortURL }}</a></div>
+                            <div class="meta"><a href="{{ .URL }}">{{ if eq .ShortURL "" }}-{{ else }}{{ .ShortURL }}{{ end }}</a></div>
                         </div>
                         <div class="extra content">
                             <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
@@ -110,9 +110,13 @@
                             {{ if .Host }}{{ .Host }}{{ else }}-{{ end}} <i class="server icon"></i>
                         </span>
                             <br />
-                            <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }} {{ if .Up }}
+                            <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }}
+                            {{ if eq .URL ""}}
+                            <span class="right floated">- <i class="help icon"></i></span>
+                            {{ else }}
+                            {{ if .Up }}
                             <span class="right floated" style="color:#21BA45;">{{ .Status }} <i class="check icon"></i></span> {{ else }}
-                            <span class="right floated" style="color:#DB2828;">{{ .Status }} <i class="remove icon"></i></span> {{ end }}
+                            <span class="right floated" style="color:#DB2828;">{{ .Status }} <i class="remove icon"></i></span> {{ end }}{{ end }}
                             <br /> {{ if .RepoURL }}
                             <a href="#" style="color:#6A6AFF;" id="commits-{{ $index }}"><i class="github alternate icon"></i> Commits</a> {{ else }}
                             <i class="github alternate icon"></i> No Commits{{ end }}

@@ -43,6 +43,7 @@ func main() {
 	cnf := configuration.C
 	all = make(models.Services, len(cnf.Services))
 	for i, s := range cnf.Services {
+		up := s.URL == ""
 		all[i] = &models.Service{
 			Name:     s.Name,
 			URL:      s.URL,
@@ -51,6 +52,7 @@ func main() {
 			BuildAPI: s.BuildAPI,
 			BuildURL: s.BuildURL,
 			RepoURL:  s.RepoURL,
+			Up:       up,
 			Icon:     "/static/custom/" + s.Icon,
 		}
 	}

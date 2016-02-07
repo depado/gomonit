@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
+
+const ghAPI = "/"
 
 // Service is a single service
 type Service struct {
@@ -23,8 +26,9 @@ type Service struct {
 	Status          int
 	Up              bool
 	Icon            string
+	LastBuilds      Builds
 	LastBuild       string
-	LastBuildTime   time.Duration
+	LastCommits     Commits
 }
 
 // CheckStatus checks if the service is running
@@ -70,10 +74,8 @@ func (s *Service) CheckBuild(client *http.Client) {
 		log.Printf("[%s][ERROR] Couldn't decode response : %v\n", s.Name, err)
 		return
 	}
-	if len(all) > 0 {
-		s.LastBuild = all[0].Status
-		s.CurrentBuildURL = fmt.Sprintf("%s%v", s.BuildURL, all[0].Number)
-	}
+	s.LastBuilds = all
+	s.LastBuild = all[0].Status
 }
 
 // Check updates the status of the Host
@@ -82,6 +84,32 @@ func (s *Service) Check(client *http.Client) {
 	if s.BuildAPI != "" {
 		go s.CheckBuild(client)
 	}
+	if s.RepoURL != "" {
+		go s.FetchCommits(client)
+	}
+}
+
+// FetchCommits fetches the last commits associated to the repository
+func (s *Service) FetchCommits(client *http.Client) {
+	u := strings.Split(s.RepoURL, "/")
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits", u[len(u)-2], u[len(u)-1])
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("[%s][ERROR] While building request for commits : %v\n", s.Name, err)
+		return
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("[%s][ERROR] While requesting commits : %v\n", s.Name, err)
+		return
+	}
+	defer resp.Body.Close()
+	var all Commits
+	if err = json.NewDecoder(resp.Body).Decode(&all); err != nil {
+		log.Printf("[%s][ERROR] Couldn't decode response : %v\n", s.Name, err)
+		return
+	}
+	s.LastCommits = all
 }
 
 // Services represents a list of services

@@ -12,64 +12,116 @@
         body {
             background-image: url("static/img/body_bg.png");
             background-repeat: repeat;
-            background-color: #DADADA;
+        }
+
+        body.pushable > .pusher {
+            background-image: url("static/img/body_bg.png");
+            background-repeat: repeat;
         }
     </style>
 </head>
 
 <body>
-    <main class="ui page grid">
-        <div class="row">
-            <div class="ui stackable cards">
-                {{ range $index, $element := .all }}
-                <div class="ui card {{ if .Up }}green{{ else }}red{{ end }}">
-                    <div class="content">
-                        <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" alt="{{ .Name }}" {{ end }}>
-                        <div class="header">{{ .Name }}</div>
-                        <div class="meta"><a href="{{ .URL }}">{{ .ShortURL }}</a></div>
+    {{ range $index, $element := .all }} {{ if .RepoURL }}
+    <div class="ui left wide sidebar vertical menu" id="sidebar-commits-{{ $index }}">
+        <h2 class="ui header">
+          <i class="github alternate icon"></i>
+          <div class="content">
+            {{ .Name }}
+            <div class="sub header">Last Commits</div>
+          </div>
+        </h2>
+        <br />
+        <div class="ui feed">
+            {{ range $i, $e := .LastCommits }}
+            <div class="event">
+                <div class="label">
+                    <img src="{{ .Author.AvatarURL }}">
+                </div>
+                <div class="content">
+                    <div class="summary">
+                        <a class="user" href="{{ .Author.URL }}" target="_blank">{{ .Commit.Author.Name }}</a>
                     </div>
-                    <div class="extra content">
-                        <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
-                        <span class="right floated">
+                    <div class="meta">
+                        <div class="date"><i class="clock icon"></i> {{ .Commit.Author.Date }}</div>
+                    </div>
+                    <div class="meta">
+                        <a href="{{ .HTMLURL }}" target="_blank">{{ .Commit.Message }}</a>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }} {{ end }}
+
+    <div class="pusher">
+        <main class="ui page grid">
+            <div class="row">&nbsp;</div>
+            <div class="row">
+                <div class="ui stackable cards">
+                    {{ range $index, $element := .all }}
+                    <div class="ui card {{ if .Up }}green{{ else }}red{{ end }}">
+                        <div class="content">
+                            <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" alt="{{ .Name }}" {{ end }}>
+                            <div class="header">{{ .Name }}</div>
+                            <div class="meta"><a href="{{ .URL }}">{{ .ShortURL }}</a></div>
+                        </div>
+                        <div class="extra content">
+                            <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
+                            <span class="right floated">
                             {{ if .Host }}{{ .Host }}{{ else }}-{{ end}} <i class="server icon"></i>
                         </span>
-                        <br />
-                        <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }}
-                        {{ if .Up }}
-                            <span class="right floated" style="color:#21BA45;">{{ .Status }} <i class="check icon"></i></span>
-                        {{ else }}
-                            <span class="right floated" style="color:#DB2828;">{{ .Status }}<i class="remove icon"></i></span>
-                        {{ end }}
-                        <br />
-                        {{ if .RepoURL }}
-                            <a href="{{ .RepoURL }}" style="color:#6A6AFF;"><i class="github alternate icon"></i> Source Code</a>
-                        {{ else }}
-                            <i class="github alternate icon"></i> No Source Code
-                        {{ end }}
+                            <br />
+                            <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }} {{ if .Up }}
+                            <span class="right floated" style="color:#21BA45;">{{ .Status }} <i class="check icon"></i></span> {{ else }}
+                            <span class="right floated" style="color:#DB2828;">{{ .Status }} <i class="remove icon"></i></span> {{ end }}
+                            <br /> {{ if .RepoURL }}
+                            <a href="#" style="color:#6A6AFF;" id="commits-{{ $index }}"><i class="github alternate icon"></i> Commits</a> {{ else }}
+                            <i class="github alternate icon"></i> No Source Code {{ end }}
 
-                        <span class="right floated">
+                            <span class="right floated">
                             {{ if .BuildAPI }}
                                 {{ if eq .LastBuild "success" }}
-                                    <a href="{{ .CurrentBuildURL }}" style="color:#21BA45;">Success <i class="configure icon"></i></a>
+                                    <a href="{{ .CurrentBuildURL }}" style="color:#21BA45;" id="builds-{{ $index }}">Success <i class="configure icon"></i></a>
                                 {{ end }}
                                 {{ if eq .LastBuild "pending"}}
-                                    <a href="{{ .CurrentBuildURL }}" style="color:#ffb347;">Pending <i class="configure icon"></i></a>
+                                    <a href="{{ .CurrentBuildURL }}" style="color:#ffb347;" id="builds-{{ $index }}">Pending <i class="configure icon"></i></a>
                                 {{ end }}
                                 {{ if eq .LastBuild "failure"}}
-                                    <a href="{{ .CurrentBuildURL }}" style="color:#DB2828;">Failure <i class="configure icon"></i></a>
+                                    <a href="{{ .CurrentBuildURL }}" style="color:#DB2828;" id="builds-{{ $index }}">Failure <i class="configure icon"></i></a>
                                 {{ end }}
                             {{ else }}
                                 No build <i class="configure icon"></i>
                             {{ end }}
                         </span>
+                        </div>
                     </div>
+                    {{ end }}
                 </div>
-                {{ end }}
             </div>
-        </div>
-    </main>
+            <div class="row">&nbsp;</div>
+        </main>
+    </div>
+
     <script src="static/js/jquery.min.js"></script>
     <script src="static/semantic/semantic.min.js"></script>
+    <script>
+        $('.ui.sidebar').sidebar({
+            transition: 'overlay'
+        });
+        $("a[id^='commits-']").click(function(evt) {
+            var commitsid = $(this).attr('id').split('-')[1];
+            console.log("test")
+            $("#sidebar-commits-" + commitsid).sidebar('toggle');
+            evt.preventDefault();
+        });
+        $("a[id^='builds-']").click(function(evt) {
+            var commitsid = $(this).attr('id').split('-')[1];
+            $(".sidebar").sidebar('toggle');
+            evt.preventDefault();
+        });
+    </script>
 </body>
 
 </html>

@@ -34,7 +34,7 @@
             {{ range $i, $e := .LastBuilds }}
             <div class="event">
                 <div class="label">
-                    <img src="{{ .AuthorAvatar }}" alt="drone">
+                    <img src="{{ if ne .AuthorAvatar "" }}{{ .AuthorAvatar }}{{ else }}/static/img/anon.jpg{{ end }}" alt="avatar">
                 </div>
                 <div class="content">
                     <div class="summary">
@@ -74,7 +74,7 @@
             {{ range $i, $e := .LastCommits }}
             <div class="event">
                 <div class="label">
-                    <img src="{{ .Author.AvatarURL }}" alt="avatar">
+                    <img src="{{ if ne .Author.AvatarURL "" }}{{ .Author.AvatarURL }}{{ else }}/static/img/anon.jpg{{ end }}" alt="avatar">
                 </div>
                 <div class="content">
                     <div class="summary">

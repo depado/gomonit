@@ -22,14 +22,51 @@
 </head>
 
 <body>
+    {{ range $index, $element := .all }} {{ if .BuildAPI }}
+    <div class="ui left wide sidebar vertical menu" id="sidebar-builds-{{ $index }}">
+        <h2 class="ui center aligned icon header">
+          <img src="/static/custom/drone.svg"/><br />
+          <a href="{{ .BuildURL }}" target="_blank">{{ .Name }}</a>
+          <div class="sub header">Last Builds</div>
+        </h2>
+        {{ $buildurl := .BuildURL }}
+        <div class="ui feed">
+            {{ range $i, $e := .LastBuilds }}
+            <div class="event">
+                <div class="label">
+                    <img src="/static/custom/drone.svg">
+                </div>
+                <div class="content">
+                    <div class="summary">
+                        <a class="user" href="{{ $buildurl }}{{ .Number }}" target="_blank">
+                            Build #{{ .Number}}
+                            {{ if eq .Status "success" }}
+                            <span class="right floated" style="color:#21BA45;"><i class="check icon"></i> </span>
+                            {{ end }}
+                            {{ if eq .Status "failure" }}
+                            <span class="right floated" style="color:#DB2828;"><i class="remove icon"></i></span>
+                            {{ end }}
+                        </a>
+                    </div>
+                    <div class="meta">
+                        {{ .Commit }}
+                    </div><br />
+                    <div class="meta">
+                        {{ .Message }}
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+    {{ end }}
     {{ range $index, $element := .all }} {{ if .RepoURL }}
     <div class="ui left wide sidebar vertical menu" id="sidebar-commits-{{ $index }}">
-        <h2 class="ui header">
+        <h2 class="ui center aligned icon header">
           <i class="github alternate icon"></i>
-          <div class="content">
-            {{ .Name }}
-            <div class="sub header">Last Commits</div>
-          </div>
+          <a href="{{ .RepoURL }}" target="_blank">{{ .Name }}</a>
+          <div class="sub header">Last Commits</div>
         </h2>
         <br />
         <div class="ui feed">
@@ -44,7 +81,7 @@
                     </div>
                     <div class="meta">
                         <div class="date"><i class="clock icon"></i> {{ .Commit.Author.Date }}</div>
-                    </div>
+                    </div><br />
                     <div class="meta">
                         <a href="{{ .HTMLURL }}" target="_blank">{{ .Commit.Message }}</a>
                     </div>
@@ -78,7 +115,7 @@
                             <span class="right floated" style="color:#DB2828;">{{ .Status }} <i class="remove icon"></i></span> {{ end }}
                             <br /> {{ if .RepoURL }}
                             <a href="#" style="color:#6A6AFF;" id="commits-{{ $index }}"><i class="github alternate icon"></i> Commits</a> {{ else }}
-                            <i class="github alternate icon"></i> No Source Code {{ end }}
+                            <i class="github alternate icon"></i> No Commits{{ end }}
 
                             <span class="right floated">
                             {{ if .BuildAPI }}
@@ -117,8 +154,8 @@
             evt.preventDefault();
         });
         $("a[id^='builds-']").click(function(evt) {
-            var commitsid = $(this).attr('id').split('-')[1];
-            $(".sidebar").sidebar('toggle');
+            var buildsid = $(this).attr('id').split('-')[1];
+            $("#sidebar-builds-" + buildsid).sidebar('toggle');
             evt.preventDefault();
         });
     </script>

@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// GHUser represents a github user
 type GHUser struct {
 	Login             string `json:"login"`
 	ID                int    `json:"id"`
@@ -22,6 +23,7 @@ type GHUser struct {
 	SiteAdmin         bool   `json:"site_admin"`
 }
 
+// Commit represents a single commit
 type Commit struct {
 	Sha    string `json:"sha"`
 	Commit struct {
@@ -55,4 +57,5 @@ type Commit struct {
 	} `json:"parents"`
 }
 
+// Commits represents multiple commits
 type Commits []Commit

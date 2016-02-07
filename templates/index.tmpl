@@ -25,7 +25,7 @@
     {{ range $index, $element := .all }} {{ if .BuildAPI }}
     <div class="ui left wide sidebar vertical menu" id="sidebar-builds-{{ $index }}">
         <h2 class="ui center aligned icon header">
-          <img src="/static/custom/drone.svg"/><br />
+          <img src="/static/custom/drone.svg" alt="drone"><br />
           <a href="{{ .BuildURL }}" target="_blank">{{ .Name }}</a>
           <div class="sub header">Last Builds</div>
         </h2>

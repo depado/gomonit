@@ -49,11 +49,11 @@
                             {{ end }}
                         </a>
                     </div>
-                    <div class="extra text">
-                        <i class="fork icon"></i> {{ .Branch }}
-                    </div>
                     <div class="meta">
-                        <a href="{{ .LinkURL }}" target="_blank">{{ .Message }}</a>
+                        <i class="clock icon"></i> {{ .StartedAt }}<br />
+                        <i class="fork icon" style="margin-left: 0;"></i> {{ .Event }} on {{ .Branch }} branch<br />
+                        <i class="refresh icon" style="margin-left: 0;"></i> {{ .Duration }}<br />
+                        <a href="{{ .LinkURL }}" target="_blank" style="margin-left: 0;"><i class="chat icon"></i> {{ .Message }}</a>
                     </div>
                 </div>
             </div>
@@ -82,8 +82,8 @@
                     </div>
                     <div class="meta">
                         <i class="clock icon"></i> {{ .Commit.Author.Date }}<br />
-                        <i class="chat icon" style="margin-left: 0;"></i> {{ .Commit.CommentCount }} Comments<br />
-                        <a href="{{ .HTMLURL }}" target="_blank" style="margin-left: 0;"><i class="fork icon"></i> {{ .Commit.Message }}</a>
+                        <i class="comments icon" style="margin-left: 0;"></i> {{ .Commit.CommentCount }} Comments<br />
+                        <a href="{{ .HTMLURL }}" target="_blank" style="margin-left: 0;"><i class="chat icon"></i> {{ .Commit.Message }}</a>
                     </div>
                 </div>
             </div>

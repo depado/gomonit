@@ -1,6 +1,7 @@
 package models
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,8 +9,6 @@ import (
 	"strings"
 	"time"
 )
-
-const ghAPI = "/"
 
 // Service is a single service
 type Service struct {
@@ -69,17 +68,24 @@ func (s *Service) CheckBuild(client *http.Client) {
 		return
 	}
 	defer resp.Body.Close()
-	var all Builds
+	var all UnparsedBuilds
 	if err = json.NewDecoder(resp.Body).Decode(&all); err != nil {
 		log.Printf("[%s][ERROR] Couldn't decode response : %v\n", s.Name, err)
 		return
 	}
-	s.LastBuilds = all
-	s.LastBuild = all[0].Status
+	pall := make(Builds, len(all))
+	for i, b := range all {
+		pall[i] = b.Parse()
+	}
+	s.LastBuilds = pall
+	s.LastBuild = pall[0].Status
 }
 
 // Check updates the status of the Host
-func (s *Service) Check(client *http.Client) {
+func (s *Service) Check() {
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
 	if s.URL != "" {
 		go s.CheckStatus(client)
 	}

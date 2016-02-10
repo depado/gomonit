@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,12 +18,9 @@ var all models.Services
 
 func periodicHostUpdate() {
 	tc := time.NewTicker(30 * time.Minute)
-	client := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}}
 	for {
 		for _, host := range all {
-			go host.Check(client)
+			go host.Check()
 		}
 		<-tc.C
 	}

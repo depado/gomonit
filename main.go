@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -16,16 +14,6 @@ import (
 
 var all models.Services
 
-func periodicHostUpdate() {
-	tc := time.NewTicker(30 * time.Minute)
-	for {
-		for _, host := range all {
-			go host.Check()
-		}
-		<-tc.C
-	}
-}
-
 func index(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
 		"all": all,
@@ -33,27 +21,18 @@ func index(c *gin.Context) {
 }
 
 func main() {
-	if err := configuration.Load("conf.yml"); err != nil {
+	var err error
+	if err = configuration.Load("conf.yml"); err != nil {
 		log.Fatal(err)
 	}
 	cnf := configuration.C
-	all = make(models.Services, len(cnf.Services))
-	for i, s := range cnf.Services {
-		up := s.URL == ""
-		all[i] = &models.Service{
-			Name:     s.Name,
-			URL:      s.URL,
-			ShortURL: s.ShortURL,
-			Host:     s.Host,
-			BuildAPI: s.BuildAPI,
-			BuildURL: s.BuildURL,
-			RepoURL:  s.RepoURL,
-			Up:       up,
-			Icon:     "/static/custom/" + s.Icon,
-		}
+	if all, err = cnf.Parse(); err != nil {
+		log.Fatal(err)
 	}
-	go periodicHostUpdate()
-	// gin.SetMode(gin.ReleaseMode)
+	go all.Monitor(cnf.UpdateInterval)
+	if !cnf.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./assets")
@@ -70,5 +49,5 @@ func main() {
 		ar.GET("/hosts/new", admin.NewHost)
 		ar.POST("/hosts/new", admin.PostNewHost)
 	}
-	r.Run(fmt.Sprintf("127.0.0.1:%d", cnf.Port))
+	r.Run(cnf.Listen)
 }

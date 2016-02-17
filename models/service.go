@@ -103,18 +103,18 @@ func (s *Service) FetchCommits(client *http.Client) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits", u[len(u)-2], u[len(u)-1])
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[%s][ERROR] While building request for commits : %v\n", s.Name, err)
+		log.Printf("[%s][ERROR][COMMITS] While building request : %v\n", s.Name, err)
 		return
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("[%s][ERROR] While requesting commits : %v\n", s.Name, err)
+		log.Printf("[%s][ERROR][COMMITS] While requesting : %v\n", s.Name, err)
 		return
 	}
 	defer resp.Body.Close()
 	var all Commits
 	if err = json.NewDecoder(resp.Body).Decode(&all); err != nil {
-		log.Printf("[%s][ERROR] Couldn't decode response : %v\n", s.Name, err)
+		log.Printf("[%s][ERROR][COMMITS] Couldn't decode response : %v\n", s.Name, err)
 		return
 	}
 	s.LastCommits = all
@@ -122,6 +122,17 @@ func (s *Service) FetchCommits(client *http.Client) {
 
 // Services represents a list of services
 type Services []*Service
+
+// Monitor allows to monitor Services every interval delay
+func (ss Services) Monitor(interval time.Duration) {
+	tc := time.NewTicker(interval)
+	for {
+		for _, s := range ss {
+			go s.Check()
+		}
+		<-tc.C
+	}
+}
 
 // ServiceForm is the struct representing a Service (to add, or modify)
 type ServiceForm struct {

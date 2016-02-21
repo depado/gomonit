@@ -97,7 +97,6 @@ func (c Configuration) Parse() (models.Services, error) {
 			BuildAPI: buildAPI,
 			BuildURL: buildURL,
 			RepoURL:  repoURL,
-			Up:       s.URL == "",
 			Icon:     "/static/custom/" + s.Icon,
 		}
 	}

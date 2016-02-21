@@ -23,10 +23,8 @@ type Service struct {
 	Last            string
 	RespTime        time.Duration
 	Status          int
-	Up              bool
 	Icon            string
 	LastBuilds      Builds
-	LastBuild       string
 	LastCommits     Commits
 }
 
@@ -40,19 +38,16 @@ func (s *Service) CheckStatus(client *http.Client) {
 	}()
 	req, err := http.NewRequest("GET", s.URL, nil)
 	if err != nil {
-		s.Up = false
 		log.Printf("[%s][ERROR] While building request : %v\n", s.Name, err)
 		return
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		s.Up = false
 		log.Printf("[%s][ERROR] While requesting : %v\n", s.Name, err)
 		return
 	}
 	defer resp.Body.Close()
 	s.Status = resp.StatusCode
-	s.Up = s.Status == 200
 }
 
 // CheckBuild checks the last build
@@ -78,7 +73,6 @@ func (s *Service) CheckBuild(client *http.Client) {
 		pall[i] = b.Parse()
 	}
 	s.LastBuilds = pall
-	s.LastBuild = pall[0].Status
 }
 
 // Check updates the status of the Host

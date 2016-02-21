@@ -3,7 +3,7 @@ build:
   commands:
     - go get
     - go build
-    - go test
+    - go test ./...
 
 matrix:
   GO_VERSION:

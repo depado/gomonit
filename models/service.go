@@ -12,20 +12,20 @@ import (
 
 // Service is a single service
 type Service struct {
-	Name            string
-	URL             string
-	ShortURL        string
-	RepoURL         string
-	Host            string
-	BuildAPI        string
-	BuildURL        string
-	CurrentBuildURL string
-	Last            string
-	RespTime        time.Duration
-	Status          int
-	Icon            string
-	LastBuilds      Builds
-	LastCommits     Commits
+	Name            string        `json:"name"`
+	URL             string        `json:"url"`
+	ShortURL        string        `json:"short_url"`
+	RepoURL         string        `json:"repo_url"`
+	Host            string        `json:"host"`
+	BuildAPI        string        `json:"build_api"`
+	BuildURL        string        `json:"build_url"`
+	CurrentBuildURL string        `json:"current_build_url"`
+	Last            string        `json:"last"`
+	RespTime        time.Duration `json:"resp_time"`
+	Status          int           `json:"status"`
+	Icon            string        `json:"icon"`
+	LastBuilds      Builds        `json:"last_builds"`
+	LastCommits     Commits       `json:"last_commits"`
 }
 
 // CheckStatus checks if the service is running

@@ -20,6 +20,14 @@ func index(c *gin.Context) {
 	})
 }
 
+func status(c *gin.Context) {
+	resp := gin.H{}
+	for _, s := range all {
+		resp[s.Name] = s.Status
+	}
+	c.JSON(200, resp)
+}
+
 func main() {
 	var err error
 	if err = configuration.Load("conf.yml"); err != nil {
@@ -38,6 +46,10 @@ func main() {
 	r.Static("/static", "./assets")
 
 	r.GET("/", index)
+	api := r.Group("/api")
+	{
+		api.GET("/status", status)
+	}
 
 	r.GET("/login", auth.Login)
 	r.POST("/login", auth.PostLogin)

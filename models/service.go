@@ -26,6 +26,7 @@ type Service struct {
 	Icon            string        `json:"icon"`
 	LastBuilds      Builds        `json:"last_builds"`
 	LastCommits     Commits       `json:"last_commits"`
+	Own             bool          `json:"own"`
 }
 
 // CheckStatus checks if the service is running

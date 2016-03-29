@@ -28,6 +28,20 @@ func status(c *gin.Context) {
 	c.JSON(200, resp)
 }
 
+func dump(c *gin.Context) {
+	c.JSON(200, all)
+}
+
+func own(c *gin.Context) {
+	resp := models.Services{}
+	for _, s := range all {
+		if s.Own {
+			resp = append(resp, s)
+		}
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
 func main() {
 	var err error
 	if err = configuration.Load("conf.yml"); err != nil {
@@ -49,6 +63,8 @@ func main() {
 	api := r.Group("/api")
 	{
 		api.GET("/status", status)
+		api.GET("/dump/all", dump)
+		api.GET("/dump/own", own)
 	}
 
 	r.GET("/login", auth.Login)

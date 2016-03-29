@@ -28,6 +28,7 @@ type service struct {
 	Repo     string `yaml:"repo"`
 	URL      string `yaml:"url"`
 	Icon     string `yaml:"icon"`
+	Own      bool   `yaml:"own"`
 }
 
 type unparsed struct {
@@ -98,6 +99,7 @@ func (c Configuration) Parse() (models.Services, error) {
 			BuildURL: buildURL,
 			RepoURL:  repoURL,
 			Icon:     "/static/custom/" + s.Icon,
+			Own:      s.Own,
 		}
 	}
 	return services, nil

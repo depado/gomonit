@@ -28,18 +28,17 @@
           <img src="/static/custom/drone.svg" alt="drone"><br />
           <a href="{{ .BuildURL }}" target="_blank">{{ .Name }}</a>
           <div class="sub header">Last Builds</div>
-        </h2>
-        {{ $buildurl := .BuildURL }}
+        </h2> {{ $buildurl := .BuildURL }}
         <div class="ui feed">
             {{ range $i, $e := .LastBuilds }}
             <div class="event">
                 <div class="label">
-                    <img src="{{ if ne .AuthorAvatar "" }}{{ .AuthorAvatar }}{{ else }}/static/img/anon.jpg{{ end }}" alt="avatar">
+                    <img src="{{ if ne .AuthorAvatar " " }}{{ .AuthorAvatar }}{{ else }}/static/img/anon.jpg{{ end }}" alt="avatar">
                 </div>
                 <div class="content">
                     <div class="summary">
                         <span>{{ .Author }} triggered</span>
-                        <a class="user" href="{{ $buildurl }}{{ .Number }}" target="_blank">
+                        <a class="user" href="{{ $buildurl }}/{{ .Number }}" target="_blank">
                             Build #{{ .Number}}
                             {{ if eq .Status "success" }}
                             <span class="right floated" style="color:#21BA45;"><i class="check icon"></i> </span>
@@ -50,9 +49,12 @@
                         </a>
                     </div>
                     <div class="meta">
-                        <i class="clock icon"></i> {{ .StartedAt }}<br />
-                        <i class="fork icon" style="margin-left: 0;"></i> {{ .Event }} on {{ .Branch }} branch<br />
-                        <i class="refresh icon" style="margin-left: 0;"></i> {{ .Duration }}<br />
+                        <i class="clock icon"></i> {{ .StartedAt }}
+                        <br />
+                        <i class="fork icon" style="margin-left: 0;"></i> {{ .Event }} on {{ .Branch }} branch
+                        <br />
+                        <i class="refresh icon" style="margin-left: 0;"></i> {{ .Duration }}
+                        <br />
                         <a href="{{ .LinkURL }}" target="_blank" style="margin-left: 0;"><i class="chat icon"></i> {{ .Message }}</a>
                     </div>
                 </div>
@@ -60,9 +62,7 @@
             {{ end }}
         </div>
     </div>
-    {{ end }}
-    {{ end }}
-    {{ range $index, $element := .all }} {{ if .RepoURL }}
+    {{ end }} {{ end }} {{ range $index, $element := .all }} {{ if .RepoURL }}
     <div class="ui left wide sidebar vertical menu" id="sidebar-commits-{{ $index }}">
         <h2 class="ui center aligned icon header">
           <i class="github alternate icon"></i>
@@ -74,15 +74,17 @@
             {{ range $i, $e := .LastCommits }}
             <div class="event">
                 <div class="label">
-                    <img src="{{ if ne .Author.AvatarURL "" }}{{ .Author.AvatarURL }}{{ else }}/static/img/anon.jpg{{ end }}" alt="avatar">
+                    <img src="{{ if ne .Author.AvatarURL " " }}{{ .Author.AvatarURL }}{{ else }}/static/img/anon.jpg{{ end }}" alt="avatar">
                 </div>
                 <div class="content">
                     <div class="summary">
                         <a class="user" href="{{ .Author.HTMLURL }}" target="_blank">{{ .Commit.Author.Name }}</a> authored
                     </div>
                     <div class="meta">
-                        <i class="clock icon"></i> {{ .Commit.Author.Date }}<br />
-                        <i class="comments icon" style="margin-left: 0;"></i> {{ .Commit.CommentCount }} Comments<br />
+                        <i class="clock icon"></i> {{ .Commit.Author.Date }}
+                        <br />
+                        <i class="comments icon" style="margin-left: 0;"></i> {{ .Commit.CommentCount }} Comments
+                        <br />
                         <a href="{{ .HTMLURL }}" target="_blank" style="margin-left: 0;"><i class="chat icon"></i> {{ .Commit.Message }}</a>
                     </div>
                 </div>
@@ -105,6 +107,19 @@
                             <div class="meta">
                                 <a href="{{ .URL }}">{{ if eq .ShortURL "" }}-{{ else }}{{ .ShortURL }}{{ end }}</a>
                             </div>
+                            <div class="description" style="text-align: center;">
+                                {{ if .RepoURL }}
+                                    <a href="{{ .RepoURL }}/stargazers" target="_blank">
+                                        <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .RepoStars }}</button>
+                                    </a>
+                                    <a href="{{ .RepoURL }}/network" target="_blank">
+                                        <button class="ui tiny teal basic compact labeled icon button"><i class="fork icon"></i>{{ .RepoForks }}</button>
+                                    </a>
+                                    <a href="{{ .RepoURL }}/watchers" target="_blank">
+                                        <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .RepoWatchers }}</button>
+                                    </a>
+                                {{ end }}
+                            </div>
                         </div>
                         <div class="extra content">
                             <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
@@ -112,15 +127,12 @@
                             {{ if .Host }}{{ .Host }}{{ else }}-{{ end}} <i class="server icon"></i>
                         </span>
                             <br />
-                            <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }}
-                            {{ if eq .URL ""}}
-                            <span class="right floated">- <i class="help icon"></i></span>
-                            {{ else }}
-                            {{ if eq .Status 200 }}
+                            <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }} {{ if eq .URL ""}}
+                            <span class="right floated">- <i class="help icon"></i></span> {{ else }} {{ if eq .Status 200 }}
                             <span class="right floated" style="color:#21BA45;">{{ .Status }} <i class="check icon"></i></span> {{ else }}
                             <span class="right floated" style="color:#DB2828;">{{ .Status }} <i class="remove icon"></i></span> {{ end }}{{ end }}
                             <br /> {{ if .RepoURL }}
-                            <a href="#" style="color:#6A6AFF;" id="commits-{{ $index }}" class="tooltip-up" data-content="View Recent Commits" data-variation="tiny"><i class="github alternate icon"></i> Commits</a> {{ else }}
+                            <a href="#" style="color:#6A6AFF;" id="commits-{{ $index }}" class="tooltip-up" data-content="View Recent Commits" data-variation="tiny"><i class="github alternate icon"></i> Commits</a>{{ else }}
                             <i class="github alternate icon"></i> No Commits{{ end }}
 
                             <span class="right floated">
@@ -136,7 +148,7 @@
                                 {{ else }}
                                         No build <i class="configure icon"></i>
                                 {{ end }}
-                        </span>
+                            </span>
                         </div>
                     </div>
                     {{ end }}
@@ -153,27 +165,27 @@
             transition: 'overlay'
         });
         $('.tooltip-up').popup({
-            inline   : true,
+            inline: true,
             hoverable: true,
-            position : 'top left',
+            position: 'top left',
             delay: {
                 show: 100,
                 hide: 100
             }
         });
         $('.tooltip-up-right').popup({
-            inline   : true,
+            inline: true,
             hoverable: true,
-            position : 'top right',
+            position: 'top right',
             delay: {
                 show: 100,
                 hide: 100
             }
         });
         $('.tooltip-down').popup({
-            inline   : true,
+            inline: true,
             hoverable: true,
-            position : 'bottom left',
+            position: 'bottom left',
             delay: {
                 show: 100,
                 hide: 100

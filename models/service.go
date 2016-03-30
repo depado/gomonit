@@ -15,7 +15,11 @@ type Service struct {
 	Name            string        `json:"name"`
 	URL             string        `json:"url"`
 	ShortURL        string        `json:"short_url"`
+	Description     string        `json:"description"`
 	RepoURL         string        `json:"repo_url"`
+	RepoStars       int           `json:"repo_stars"`
+	RepoForks       int           `json:"repo_forks"`
+	RepoWatchers    int           `json:"repo_watchers"`
 	Host            string        `json:"host"`
 	BuildAPI        string        `json:"build_api"`
 	BuildURL        string        `json:"build_url"`
@@ -29,8 +33,8 @@ type Service struct {
 	Own             bool          `json:"own"`
 }
 
-// CheckStatus checks if the service is running
-func (s *Service) CheckStatus(client *http.Client) {
+// FetchStatus checks if the service is running
+func (s *Service) FetchStatus(client *http.Client) {
 	start := time.Now()
 	s.Last = start.Format("2006/01/02 15:04:05")
 	defer func() {
@@ -51,14 +55,9 @@ func (s *Service) CheckStatus(client *http.Client) {
 	s.Status = resp.StatusCode
 }
 
-// CheckBuild checks the last build
-func (s *Service) CheckBuild(client *http.Client) {
-	req, err := http.NewRequest("GET", s.BuildAPI, nil)
-	if err != nil {
-		log.Printf("[%s][ERROR] While building request for build : %v\n", s.Name, err)
-		return
-	}
-	resp, err := client.Do(req)
+// FetchBuilds checks the last build
+func (s *Service) FetchBuilds(client *http.Client) {
+	resp, err := http.Get(s.BuildAPI)
 	if err != nil {
 		log.Printf("[%s][ERROR] While requesting build status : %v\n", s.Name, err)
 		return
@@ -76,32 +75,11 @@ func (s *Service) CheckBuild(client *http.Client) {
 	s.LastBuilds = pall
 }
 
-// Check updates the status of the Host
-func (s *Service) Check() {
-	client := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}}
-	if s.URL != "" {
-		go s.CheckStatus(client)
-	}
-	if s.BuildAPI != "" {
-		go s.CheckBuild(client)
-	}
-	if s.RepoURL != "" {
-		go s.FetchCommits(client)
-	}
-}
-
 // FetchCommits fetches the last commits associated to the repository
 func (s *Service) FetchCommits(client *http.Client) {
 	u := strings.Split(s.RepoURL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits", u[len(u)-2], u[len(u)-1])
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Printf("[%s][ERROR][COMMITS] While building request : %v\n", s.Name, err)
-		return
-	}
-	resp, err := client.Do(req)
+	resp, err := http.Get(url)
 	if err != nil {
 		log.Printf("[%s][ERROR][COMMITS] While requesting : %v\n", s.Name, err)
 		return
@@ -113,6 +91,44 @@ func (s *Service) FetchCommits(client *http.Client) {
 		return
 	}
 	s.LastCommits = all
+}
+
+// FetchRepoInfos fetches the repository information
+func (s *Service) FetchRepoInfos(client *http.Client) {
+	u := strings.Split(s.RepoURL, "/")
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", u[len(u)-2], u[len(u)-1])
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("[%s][ERROR][REPO] While requesting : %v\n", s.Name, err)
+		return
+	}
+	defer resp.Body.Close()
+	var repo GHRepo
+	if err = json.NewDecoder(resp.Body).Decode(&repo); err != nil {
+		log.Printf("[%s][ERROR][REPO] Couldn't decode response : %v\n", s.Name, err)
+		return
+	}
+	s.RepoStars = repo.StargazersCount
+	s.RepoForks = repo.ForksCount
+	s.RepoWatchers = repo.SubscribersCount
+	s.Description = repo.Description
+}
+
+// Check updates the status of the Host
+func (s *Service) Check() {
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
+	if s.URL != "" {
+		s.FetchStatus(client)
+	}
+	if s.BuildAPI != "" {
+		go s.FetchBuilds(client)
+	}
+	if s.RepoURL != "" {
+		go s.FetchCommits(client)
+		go s.FetchRepoInfos(client)
+	}
 }
 
 // Services represents a list of services

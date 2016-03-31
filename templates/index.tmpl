@@ -95,67 +95,72 @@
     {{ end }} {{ end }}
 
     <div class="pusher">
-        <main class="ui page grid">
-            <div class="row">&nbsp;</div>
-            <div class="row">
-                <div class="ui stackable cards">
-                    {{ range $index, $element := .all }}
-                    <div class="ui card {{ if eq .Status 200 }}green{{ else if eq .URL "" }}green{{ else }}red{{ end }}">
-                        <div class="content">
-                            <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" alt="{{ .Name }}" {{ end }}>
-                            <div class="header"><a href="#" class="tooltip-down" style="color: rgba(0,0,0,.85);" id="history-{{ $index }}" data-content="View History" data-variation="tiny">{{ .Name }}</a></div>
-                            <div class="meta">
-                                <a href="{{ .URL }}">{{ if eq .ShortURL "" }}-{{ else }}{{ .ShortURL }}{{ end }}</a>
-                            </div>
-                            <div class="description" style="text-align: center;">
-                                {{ if .RepoURL }}
-                                    <a href="{{ .RepoURL }}/stargazers" target="_blank">
-                                        <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .RepoStars }}</button>
-                                    </a>
-                                    <a href="{{ .RepoURL }}/network" target="_blank">
-                                        <button class="ui tiny teal basic compact labeled icon button"><i class="fork icon"></i>{{ .RepoForks }}</button>
-                                    </a>
-                                    <a href="{{ .RepoURL }}/watchers" target="_blank">
-                                        <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .RepoWatchers }}</button>
-                                    </a>
-                                {{ end }}
-                            </div>
-                        </div>
-                        <div class="extra content">
-                            <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
-                            <span class="right floated">
-                            {{ if .Host }}{{ .Host }}{{ else }}-{{ end}} <i class="server icon"></i>
-                        </span>
-                            <br />
-                            <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }} {{ if eq .URL ""}}
-                            <span class="right floated">- <i class="help icon"></i></span> {{ else }} {{ if eq .Status 200 }}
-                            <span class="right floated" style="color:#21BA45;">{{ .Status }} <i class="check icon"></i></span> {{ else }}
-                            <span class="right floated" style="color:#DB2828;">{{ .Status }} <i class="remove icon"></i></span> {{ end }}{{ end }}
-                            <br /> {{ if .RepoURL }}
-                            <a href="#" style="color:#6A6AFF;" id="commits-{{ $index }}" class="tooltip-up" data-content="View Recent Commits" data-variation="tiny"><i class="github alternate icon"></i> Commits</a>{{ else }}
-                            <i class="github alternate icon"></i> No Commits{{ end }}
-
-                            <span class="right floated">
-                                {{ if .LastBuilds }}
-                                    {{ $last := index .LastBuilds 0 }}
-                                    {{ if eq $last.Status "success" }}
-                                        <a href="{{ .CurrentBuildURL }}" style="color:#21BA45;" class="tooltip-up-right" id="builds-{{ $index }}" data-content="View Recent Builds" data-variation="tiny">Success <i class="configure icon"></i></a>
-                                    {{ else if eq $last.Status "pending"}}
-                                        <a href="{{ .CurrentBuildURL }}" style="color:#ffb347;" id="builds-{{ $index }}" class="tooltip-right" data-content="View Recent Builds" data-variation="tiny">Pending <i class="configure icon"></i></a>
-                                    {{ else if eq $last.Status "failure"}}
-                                        <a href="{{ .CurrentBuildURL }}" style="color:#DB2828;" id="builds-{{ $index }}" class="tooltip-up-right" data-content="View Recent Builds" data-variation="tiny">Failure <i class="configure icon"></i></a>
-                                    {{ end }}
-                                {{ else }}
-                                        No build <i class="configure icon"></i>
-                                {{ end }}
-                            </span>
-                        </div>
+        <br /><br />
+        <div class="ui fluid centered stackable cards">
+            {{ range $index, $element := .all }}
+            <div class="ui card {{ if eq .Status 200 }}green{{ else if eq .URL "" }}green{{ else }}red{{ end }}">
+                <div class="content">
+                    <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" alt="{{ .Name }}" {{ end }}>
+                    <div class="header"><a href="#" class="tooltip-down" style="color: rgba(0,0,0,.85);" id="history-{{ $index }}" data-content="View History" data-variation="tiny">{{ .Name }}</a></div>
+                    <div class="meta">
+                        <a href="{{ .URL }}">{{ if eq .ShortURL "" }}-{{ else }}{{ .ShortURL }}{{ end }}</a>
                     </div>
+                    <div class="description" style="text-align: center;">
+                        {{ if .RepoURL }}
+                        <a href="{{ .RepoURL }}/stargazers" target="_blank">
+                            <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .RepoStars }}</button>
+                        </a>
+                        <a href="{{ .RepoURL }}/network" target="_blank">
+                            <button class="ui tiny teal basic compact labeled icon button"><i class="fork icon"></i>{{ .RepoForks }}</button>
+                        </a>
+                        <a href="{{ .RepoURL }}/watchers" target="_blank">
+                            <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .RepoWatchers }}</button>
+                        </a>
+                        {{ end }}
+                    </div>
+                </div>
+                <div class="extra content">
+                    <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
+                    <span class="right floated">
+                        {{ if .Host }}{{ .Host }}{{ else }}-{{ end}} <i class="server icon"></i>
+                    </span>
+                    <br />
+                    <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }}
+                    {{ if eq .URL ""}}
+                        <span class="right floated">- <i class="help icon"></i></span>
+                    {{ else }}
+                        {{ if eq .Status 200 }}
+                            <span class="right floated" style="color:#21BA45;">{{ .Status }} <i class="check icon"></i></span>
+                        {{ else }}
+                            <span class="right floated" style="color:#DB2828;">{{ .Status }} <i class="remove icon"></i></span>
+                        {{ end }}
                     {{ end }}
+                    <br />
+                    {{ if .RepoURL }}
+                        <a href="#" style="color:#6A6AFF;" id="commits-{{ $index }}" class="tooltip-up" data-content="View Recent Commits" data-variation="tiny"><i class="github alternate icon"></i> Commits</a>
+                    {{ else }}
+                        <i class="github alternate icon"></i> No Commits
+                    {{ end }}
+
+                    <span class="right floated">
+                        {{ if .LastBuilds }}
+                            {{ $last := index .LastBuilds 0 }}
+                            {{ if eq $last.Status "success" }}
+                                <a href="{{ .CurrentBuildURL }}" style="color:#21BA45;" class="tooltip-up-right" id="builds-{{ $index }}" data-content="View Recent Builds" data-variation="tiny">Success <i class="configure icon"></i></a>
+                            {{ else if eq $last.Status "pending"}}
+                                <a href="{{ .CurrentBuildURL }}" style="color:#ffb347;" id="builds-{{ $index }}" class="tooltip-right" data-content="View Recent Builds" data-variation="tiny">Pending <i class="configure icon"></i></a>
+                            {{ else if eq $last.Status "failure"}}
+                                <a href="{{ .CurrentBuildURL }}" style="color:#DB2828;" id="builds-{{ $index }}" class="tooltip-up-right" data-content="View Recent Builds" data-variation="tiny">Failure <i class="configure icon"></i></a>
+                            {{ end }}
+                        {{ else }}
+                                No build <i class="configure icon"></i>
+                        {{ end }}
+                    </span>
                 </div>
             </div>
-            <div class="row">&nbsp;</div>
-        </main>
+            {{ end }}
+        </div>
+        <br /><br />
     </div>
 
     <script src="static/js/jquery.min.js"></script>

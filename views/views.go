@@ -8,7 +8,8 @@ import (
 	"github.com/Depado/gomonit/models"
 )
 
-func index(c *gin.Context) {
+// Index is the main route
+func Index(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
 		"all": models.All,
 	})

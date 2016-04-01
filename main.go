@@ -2,74 +2,52 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/Depado/gomonit/admin"
 	"github.com/Depado/gomonit/auth"
-	"github.com/Depado/gomonit/configuration"
+	"github.com/Depado/gomonit/conf"
 	"github.com/Depado/gomonit/models"
+	"github.com/Depado/gomonit/views"
 )
-
-var all models.Services
-
-func index(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{
-		"all": all,
-	})
-}
-
-func status(c *gin.Context) {
-	resp := gin.H{}
-	for _, s := range all {
-		resp[s.Name] = s.Status
-	}
-	c.JSON(200, resp)
-}
-
-func dump(c *gin.Context) {
-	c.JSON(200, all)
-}
-
-func own(c *gin.Context) {
-	resp := models.Services{}
-	for _, s := range all {
-		if s.Own {
-			resp = append(resp, s)
-		}
-	}
-	c.JSON(http.StatusOK, resp)
-}
 
 func main() {
 	var err error
-	if err = configuration.Load("conf.yml"); err != nil {
+
+	// Configuration parsing and services initialization
+	if err = conf.Load("conf.yml"); err != nil {
 		log.Fatal(err)
 	}
-	cnf := configuration.C
-	if all, err = cnf.Parse(); err != nil {
+	if err = conf.C.Parse(); err != nil {
 		log.Fatal(err)
 	}
-	go all.Monitor(cnf.UpdateInterval)
-	if !cnf.Debug {
+	// Starting monitoring of services
+	go models.All.Monitor()
+
+	// Gin initialization
+	if !conf.C.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./assets")
 
-	r.GET("/", index)
+	r.GET("/", views.Index)
+
+	// API routes declaration
 	api := r.Group("/api")
 	{
-		api.GET("/status", status)
-		api.GET("/dump/all", dump)
-		api.GET("/dump/own", own)
+		api.GET("/status", views.Status)
+		api.GET("/dump/all", views.DumpAll)
+		api.GET("/dump/own", views.DumpOwn)
 	}
 
+	// Authentication routes declaration
 	r.GET("/login", auth.Login)
 	r.POST("/login", auth.PostLogin)
 
+	// Admin routes declaration
 	ar := r.Group("/admin")
 	{
 		ar.GET("/", admin.Root)
@@ -77,5 +55,7 @@ func main() {
 		ar.GET("/hosts/new", admin.NewHost)
 		ar.POST("/hosts/new", admin.PostNewHost)
 	}
-	r.Run(cnf.Listen)
+
+	// Running
+	r.Run(conf.C.Listen)
 }

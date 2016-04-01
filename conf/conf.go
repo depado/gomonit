@@ -1,4 +1,4 @@
-package configuration
+package conf
 
 import (
 	"fmt"
@@ -68,15 +68,15 @@ func Load(fp string) error {
 }
 
 // Parse parses the configuration and returns the appropriate Services
-func (c Configuration) Parse() (models.Services, error) {
-	services := make(models.Services, len(c.Services))
+func (c Configuration) Parse() error {
+	models.All = make(models.Services, len(c.Services))
 	c.CIURL = strings.TrimSuffix(c.CIURL, "/")
 	for i, s := range c.Services {
 		if s.CIType != "" && s.CIType != "drone" {
-			return nil, fmt.Errorf("Unable to use %s as CI, currently only drone is supported.", s.CIType)
+			return fmt.Errorf("Unable to use %s as CI, currently only drone is supported.", s.CIType)
 		}
 		if s.RepoType != "" && s.RepoType != "github" {
-			return nil, fmt.Errorf("Unable to use %s as repository, currently only github is supported.", s.RepoType)
+			return fmt.Errorf("Unable to use %s as repository, currently only github is supported.", s.RepoType)
 		}
 		repoURL := ""
 		if s.Repo != "" {
@@ -90,7 +90,7 @@ func (c Configuration) Parse() (models.Services, error) {
 		}
 		short := strings.TrimPrefix(s.URL, "http://")
 		short = strings.TrimPrefix(short, "https://")
-		services[i] = &models.Service{
+		models.All[i] = &models.Service{
 			Name:     s.Name,
 			URL:      s.URL,
 			ShortURL: short,
@@ -102,5 +102,5 @@ func (c Configuration) Parse() (models.Services, error) {
 			Own:      s.Own,
 		}
 	}
-	return services, nil
+	return nil
 }

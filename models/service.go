@@ -8,7 +8,12 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/Depado/gomonit/conf"
 )
+
+// All represents all the services
+var All Services
 
 // Service is a single service
 type Service struct {
@@ -135,8 +140,8 @@ func (s *Service) Check() {
 type Services []*Service
 
 // Monitor allows to monitor Services every interval delay
-func (ss Services) Monitor(interval time.Duration) {
-	tc := time.NewTicker(interval)
+func (ss Services) Monitor() {
+	tc := time.NewTicker(conf.C.UpdateInterval)
 	for {
 		for _, s := range ss {
 			go s.Check()

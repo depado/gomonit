@@ -1,4 +1,6 @@
 # gomonit
+[![Go Report Card](https://goreportcard.com/badge/github.com/Depado/gomonit)](https://goreportcard.com/report/github.com/Depado/gomonit)
+
 Small soft to check if your services are running, providing a web interface.
 
 Using gin and semantic-ui

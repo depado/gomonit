@@ -23,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 	// Starting monitoring of services
-	go models.All.Monitor(conf.C.UpdateInterval)
+	go models.All.Monitor()
 
 	// Gin initialization
 	if !conf.C.Debug {

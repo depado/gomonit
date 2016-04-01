@@ -12,7 +12,8 @@ type Configuration struct {
 	Listen           string
 	Debug            bool
 	CIURL            string
-	UpdateInterval   time.Duration
+	ServiceInterval  time.Duration
+	RepoInterval     time.Duration
 	GithubOAuthToken string
 	Services         []service
 }
@@ -32,7 +33,8 @@ type unparsed struct {
 	Listen           string `yaml:"listen"`
 	Debug            bool   `yaml:"debug"`
 	CIURL            string `yaml:"ci_url"`
-	UpdateInterval   string `yaml:"update_interval"`
+	ServiceInterval  string `yaml:"service_interval"`
+	RepoInterval     string `yaml:"repo_interval"`
 	GithubOAuthToken string `yaml:"github_oauth_token"`
 	Services         []service
 }
@@ -44,7 +46,9 @@ var C Configuration
 func Load(fp string) error {
 	var err error
 	var u unparsed
-	var d time.Duration
+	var sd time.Duration
+	var rd time.Duration
+
 	conf, err := ioutil.ReadFile(fp)
 	if err != nil {
 		return err
@@ -52,14 +56,18 @@ func Load(fp string) error {
 	if err = yaml.Unmarshal(conf, &u); err != nil {
 		return err
 	}
-	if d, err = time.ParseDuration(u.UpdateInterval); err != nil {
+	if sd, err = time.ParseDuration(u.ServiceInterval); err != nil {
+		return err
+	}
+	if rd, err = time.ParseDuration(u.RepoInterval); err != nil {
 		return err
 	}
 	C = Configuration{
 		Listen:           u.Listen,
 		Debug:            u.Debug,
 		CIURL:            u.CIURL,
-		UpdateInterval:   d,
+		ServiceInterval:  sd,
+		RepoInterval:     rd,
 		Services:         u.Services,
 		GithubOAuthToken: u.GithubOAuthToken,
 	}

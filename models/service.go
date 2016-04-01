@@ -138,31 +138,34 @@ func (s *Service) FetchRepoInfos() {
 	s.Description = repo.Description
 }
 
-// Check updates the status of the Host
-func (s *Service) Check() {
-	if s.URL != "" {
-		s.FetchStatus()
-	}
-	if s.BuildAPI != "" {
-		go s.FetchBuilds()
-	}
-	if s.RepoURL != "" {
-		go s.FetchCommits()
-		go s.FetchRepoInfos()
-	}
-}
-
 // Services represents a list of services
 type Services []*Service
 
 // Monitor allows to monitor Services every interval delay
-func (ss Services) Monitor(interval time.Duration) {
-	tc := time.NewTicker(interval)
+func (ss Services) Monitor() {
+	go func() {
+		rtc := time.NewTicker(conf.C.RepoInterval)
+		for {
+			for _, s := range ss {
+				if s.BuildAPI != "" {
+					go s.FetchBuilds()
+				}
+				if s.RepoURL != "" {
+					go s.FetchCommits()
+					go s.FetchRepoInfos()
+				}
+			}
+			<-rtc.C
+		}
+	}()
+	stc := time.NewTicker(conf.C.ServiceInterval)
 	for {
 		for _, s := range ss {
-			go s.Check()
+			if s.URL != "" {
+				s.FetchStatus()
+			}
 		}
-		<-tc.C
+		<-stc.C
 	}
 }
 

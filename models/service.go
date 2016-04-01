@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Depado/gomonit/conf"
@@ -43,28 +44,27 @@ func (s *Service) FetchStatus() {
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}}
-	start := time.Now()
-	s.Last = start.Format("2006/01/02 15:04:05")
-	defer func() {
-		d := time.Since(start)
-		s.RespTime = d - (d % time.Millisecond)
-	}()
 	req, err := http.NewRequest("GET", s.URL, nil)
 	if err != nil {
 		log.Printf("[%s][ERROR] While building request : %v\n", s.Name, err)
 		return
 	}
+	start := time.Now()
+	s.Last = start.Format("2006/01/02 15:04:05")
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("[%s][ERROR] While requesting : %v\n", s.Name, err)
 		return
 	}
 	defer resp.Body.Close()
+	d := time.Since(start)
+	s.RespTime = d - (d % time.Millisecond)
 	s.Status = resp.StatusCode
 }
 
 // FetchBuilds checks the last build
-func (s *Service) FetchBuilds() {
+func (s *Service) FetchBuilds(wg *sync.WaitGroup) {
+	defer wg.Done()
 	resp, err := http.Get(s.BuildAPI)
 	if err != nil {
 		log.Printf("[%s][ERROR] While requesting build status : %v\n", s.Name, err)
@@ -84,7 +84,8 @@ func (s *Service) FetchBuilds() {
 }
 
 // FetchCommits fetches the last commits associated to the repository
-func (s *Service) FetchCommits() {
+func (s *Service) FetchCommits(wg *sync.WaitGroup) {
+	defer wg.Done()
 	u := strings.Split(s.RepoURL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits", u[len(u)-2], u[len(u)-1])
 	client := &http.Client{}
@@ -110,7 +111,8 @@ func (s *Service) FetchCommits() {
 }
 
 // FetchRepoInfos fetches the repository information
-func (s *Service) FetchRepoInfos() {
+func (s *Service) FetchRepoInfos(wg *sync.WaitGroup) {
+	defer wg.Done()
 	u := strings.Split(s.RepoURL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", u[len(u)-2], u[len(u)-1])
 	client := &http.Client{}
@@ -143,28 +145,38 @@ type Services []*Service
 
 // Monitor allows to monitor Services every interval delay
 func (ss Services) Monitor() {
+	var work sync.Mutex
+	var wg sync.WaitGroup
+
 	go func() {
 		rtc := time.NewTicker(conf.C.RepoInterval)
 		for {
+			work.Lock()
 			for _, s := range ss {
 				if s.BuildAPI != "" {
-					go s.FetchBuilds()
+					wg.Add(1)
+					go s.FetchBuilds(&wg)
 				}
 				if s.RepoURL != "" {
-					go s.FetchCommits()
-					go s.FetchRepoInfos()
+					wg.Add(2)
+					go s.FetchCommits(&wg)
+					go s.FetchRepoInfos(&wg)
 				}
 			}
+			wg.Wait()
+			work.Unlock()
 			<-rtc.C
 		}
 	}()
 	stc := time.NewTicker(conf.C.ServiceInterval)
 	for {
+		work.Lock()
 		for _, s := range ss {
 			if s.URL != "" {
 				s.FetchStatus()
 			}
 		}
+		work.Unlock()
 		<-stc.C
 	}
 }

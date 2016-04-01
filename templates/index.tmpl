@@ -105,19 +105,7 @@
                     <div class="meta">
                         <a href="{{ .URL }}">{{ if eq .ShortURL "" }}-{{ else }}{{ .ShortURL }}{{ end }}</a>
                     </div>
-                    <div class="description" style="text-align: center;">
-                        {{ if .RepoURL }}
-                        <a href="{{ .RepoURL }}/stargazers" target="_blank">
-                            <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .RepoStars }}</button>
-                        </a>
-                        <a href="{{ .RepoURL }}/network" target="_blank">
-                            <button class="ui tiny teal basic compact labeled icon button"><i class="fork icon"></i>{{ .RepoForks }}</button>
-                        </a>
-                        <a href="{{ .RepoURL }}/watchers" target="_blank">
-                            <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .RepoWatchers }}</button>
-                        </a>
-                        {{ end }}
-                    </div>
+
                 </div>
                 <div class="extra content">
                     <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
@@ -156,7 +144,22 @@
                                 No build <i class="configure icon"></i>
                         {{ end }}
                     </span>
+
                 </div>
+                {{ if .RepoURL }}
+                <br />
+                <div class="extra content" style="text-align: center;">
+                    <a href="{{ .RepoURL }}/stargazers" target="_blank">
+                        <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .RepoStars }}</button>
+                    </a>
+                    <a href="{{ .RepoURL }}/network" target="_blank">
+                        <button class="ui tiny teal basic compact labeled icon button"><i class="fork icon"></i>{{ .RepoForks }}</button>
+                    </a>
+                    <a href="{{ .RepoURL }}/watchers" target="_blank">
+                        <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .RepoWatchers }}</button>
+                    </a>
+                </div>
+                {{ end }}
             </div>
             {{ end }}
         </div>

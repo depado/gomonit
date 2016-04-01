@@ -146,9 +146,9 @@
                     </span>
 
                 </div>
-                {{ if .RepoURL }}
                 <br />
                 <div class="extra content" style="text-align: center;">
+                {{ if .RepoURL }}
                     <a href="{{ .RepoURL }}/stargazers" target="_blank">
                         <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .RepoStars }}</button>
                     </a>
@@ -158,8 +158,12 @@
                     <a href="{{ .RepoURL }}/watchers" target="_blank">
                         <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .RepoWatchers }}</button>
                     </a>
-                </div>
+                {{ else }}
+                    <button class="ui tiny disabled teal basic compact labeled icon button"><i class="star icon"></i>-</button>
+                    <button class="ui tiny disabled teal basic compact labeled icon button"><i class="fork icon"></i>-</button>
+                    <button class="ui tiny disabled teal basic compact labeled icon button"><i class="eye icon"></i>-</button>
                 {{ end }}
+                </div>
             </div>
             {{ end }}
         </div>

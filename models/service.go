@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/Depado/gomonit/conf"
 )
 
 // All represents all the services
@@ -37,7 +39,10 @@ type Service struct {
 }
 
 // FetchStatus checks if the service is running
-func (s *Service) FetchStatus(client *http.Client) {
+func (s *Service) FetchStatus() {
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
 	start := time.Now()
 	s.Last = start.Format("2006/01/02 15:04:05")
 	defer func() {
@@ -59,7 +64,7 @@ func (s *Service) FetchStatus(client *http.Client) {
 }
 
 // FetchBuilds checks the last build
-func (s *Service) FetchBuilds(client *http.Client) {
+func (s *Service) FetchBuilds() {
 	resp, err := http.Get(s.BuildAPI)
 	if err != nil {
 		log.Printf("[%s][ERROR] While requesting build status : %v\n", s.Name, err)
@@ -79,17 +84,25 @@ func (s *Service) FetchBuilds(client *http.Client) {
 }
 
 // FetchCommits fetches the last commits associated to the repository
-func (s *Service) FetchCommits(client *http.Client) {
+func (s *Service) FetchCommits() {
 	u := strings.Split(s.RepoURL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits", u[len(u)-2], u[len(u)-1])
-	resp, err := http.Get(url)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("[%s][ERROR][COMMITS] Couldn't create request : %v\n", s.Name, err)
+	}
+	if conf.C.GithubOAuthToken != "" {
+		req.Header.Add("Authorization", "token "+conf.C.GithubOAuthToken)
+	}
+	res, err := client.Do(req)
 	if err != nil {
 		log.Printf("[%s][ERROR][COMMITS] While requesting : %v\n", s.Name, err)
 		return
 	}
-	defer resp.Body.Close()
+	defer res.Body.Close()
 	var all Commits
-	if err = json.NewDecoder(resp.Body).Decode(&all); err != nil {
+	if err = json.NewDecoder(res.Body).Decode(&all); err != nil {
 		log.Printf("[%s][ERROR][COMMITS] Couldn't decode response : %v\n", s.Name, err)
 		return
 	}
@@ -97,17 +110,25 @@ func (s *Service) FetchCommits(client *http.Client) {
 }
 
 // FetchRepoInfos fetches the repository information
-func (s *Service) FetchRepoInfos(client *http.Client) {
+func (s *Service) FetchRepoInfos() {
 	u := strings.Split(s.RepoURL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", u[len(u)-2], u[len(u)-1])
-	resp, err := http.Get(url)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("[%s][ERROR][REPO] Couldn't create request : %v\n", s.Name, err)
+	}
+	if conf.C.GithubOAuthToken != "" {
+		req.Header.Add("Authorization", "token "+conf.C.GithubOAuthToken)
+	}
+	res, err := client.Do(req)
 	if err != nil {
 		log.Printf("[%s][ERROR][REPO] While requesting : %v\n", s.Name, err)
 		return
 	}
-	defer resp.Body.Close()
+	defer res.Body.Close()
 	var repo GHRepo
-	if err = json.NewDecoder(resp.Body).Decode(&repo); err != nil {
+	if err = json.NewDecoder(res.Body).Decode(&repo); err != nil {
 		log.Printf("[%s][ERROR][REPO] Couldn't decode response : %v\n", s.Name, err)
 		return
 	}
@@ -119,18 +140,15 @@ func (s *Service) FetchRepoInfos(client *http.Client) {
 
 // Check updates the status of the Host
 func (s *Service) Check() {
-	client := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}}
 	if s.URL != "" {
-		s.FetchStatus(client)
+		s.FetchStatus()
 	}
 	if s.BuildAPI != "" {
-		go s.FetchBuilds(client)
+		go s.FetchBuilds()
 	}
 	if s.RepoURL != "" {
-		go s.FetchCommits(client)
-		go s.FetchRepoInfos(client)
+		go s.FetchCommits()
+		go s.FetchRepoInfos()
 	}
 }
 

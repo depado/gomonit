@@ -19,7 +19,7 @@ func main() {
 	if err = conf.Load("conf.yml"); err != nil {
 		log.Fatal(err)
 	}
-	if err = conf.C.Parse(); err != nil {
+	if err = models.ParseConf(); err != nil {
 		log.Fatal(err)
 	}
 	// Starting monitoring of services

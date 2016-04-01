@@ -1,23 +1,20 @@
 package conf
 
 import (
-	"fmt"
 	"io/ioutil"
-	"strings"
 	"time"
-
-	"github.com/Depado/gomonit/models"
 
 	"gopkg.in/yaml.v2"
 )
 
 // Configuration is the type representing the configuration of the service
 type Configuration struct {
-	Listen         string
-	Debug          bool
-	CIURL          string
-	UpdateInterval time.Duration
-	Services       []service
+	Listen           string
+	Debug            bool
+	CIURL            string
+	UpdateInterval   time.Duration
+	GithubOAuthToken string
+	Services         []service
 }
 
 type service struct {
@@ -32,11 +29,12 @@ type service struct {
 }
 
 type unparsed struct {
-	Listen         string `yaml:"listen"`
-	Debug          bool   `yaml:"debug"`
-	CIURL          string `yaml:"ci_url"`
-	UpdateInterval string `yaml:"update_interval"`
-	Services       []service
+	Listen           string `yaml:"listen"`
+	Debug            bool   `yaml:"debug"`
+	CIURL            string `yaml:"ci_url"`
+	UpdateInterval   string `yaml:"update_interval"`
+	GithubOAuthToken string `yaml:"github_oauth_token"`
+	Services         []service
 }
 
 // C is the main configuration that is exported
@@ -58,49 +56,12 @@ func Load(fp string) error {
 		return err
 	}
 	C = Configuration{
-		Listen:         u.Listen,
-		Debug:          u.Debug,
-		CIURL:          u.CIURL,
-		UpdateInterval: d,
-		Services:       u.Services,
-	}
-	return nil
-}
-
-// Parse parses the configuration and returns the appropriate Services
-func (c Configuration) Parse() error {
-	models.All = make(models.Services, len(c.Services))
-	c.CIURL = strings.TrimSuffix(c.CIURL, "/")
-	for i, s := range c.Services {
-		if s.CIType != "" && s.CIType != "drone" {
-			return fmt.Errorf("Unable to use %s as CI, currently only drone is supported.", s.CIType)
-		}
-		if s.RepoType != "" && s.RepoType != "github" {
-			return fmt.Errorf("Unable to use %s as repository, currently only github is supported.", s.RepoType)
-		}
-		repoURL := ""
-		if s.Repo != "" {
-			repoURL = fmt.Sprintf("https://github.com/%s", s.Repo)
-		}
-		buildAPI := ""
-		buildURL := ""
-		if s.CIType != "" {
-			buildAPI = fmt.Sprintf("%s/api/repos/%s/builds", c.CIURL, s.Repo)
-			buildURL = fmt.Sprintf("%s/%s", c.CIURL, s.Repo)
-		}
-		short := strings.TrimPrefix(s.URL, "http://")
-		short = strings.TrimPrefix(short, "https://")
-		models.All[i] = &models.Service{
-			Name:     s.Name,
-			URL:      s.URL,
-			ShortURL: short,
-			Host:     s.Host,
-			BuildAPI: buildAPI,
-			BuildURL: buildURL,
-			RepoURL:  repoURL,
-			Icon:     "/static/custom/" + s.Icon,
-			Own:      s.Own,
-		}
+		Listen:           u.Listen,
+		Debug:            u.Debug,
+		CIURL:            u.CIURL,
+		UpdateInterval:   d,
+		Services:         u.Services,
+		GithubOAuthToken: u.GithubOAuthToken,
 	}
 	return nil
 }

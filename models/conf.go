@@ -35,7 +35,6 @@ type rawConfiguration struct {
 }
 
 func (r *rawConfiguration) ParseServices() (Services, error) {
-	var err error
 	services := make(Services, len(r.Services))
 	for i, s := range r.Services {
 		p, err := s.Parse()
@@ -74,12 +73,12 @@ func (r *rawService) Parse() (Service, error) {
 	var si time.Duration
 
 	if r.ID == "" || r.Name == "" {
-		return s, fmt.Errorf("Each service needs a 'name' and an 'id' fields.")
+		return s, fmt.Errorf("Configuration Error : Each service needs a 'name' and an 'id' fields.")
 	}
 	s.Name = r.Name
 	s.ID = r.ID
 	if r.RepoType != "" && r.RepoType != "github" { // TODO Modify when other types of repo are added
-		return s, fmt.Errorf("Service %s : %s repo type isn't supported yet", r.Name, r.RepoType)
+		return s, fmt.Errorf("Configuration Error : Service %s : %s repo type isn't supported yet", r.Name, r.RepoType)
 	}
 	if r.Repo != "" {
 		s.Repo = r.Repo
@@ -88,16 +87,16 @@ func (r *rawService) Parse() (Service, error) {
 		s.RepoURL = fmt.Sprintf("%s/%s", strings.TrimSuffix(r.RepoHost, "/"), r.Repo)
 		if r.RepoInterval != "" {
 			if ri, err = time.ParseDuration(r.RepoInterval); err != nil {
-				return s, fmt.Errorf("Service %s : Can't parse 'repo_interval' : %s", r.Name, err)
+				return s, fmt.Errorf("Configuration Error : Service %s : Can't parse 'repo_interval' : %s", r.Name, err)
 			}
 			s.RepoInterval = ri
 		}
 		if r.CIType != "" {
 			if r.CIType != "drone" {
-				return s, fmt.Errorf("Service %s : %s ci type isn't supported yet", r.Name, r.CIType)
+				return s, fmt.Errorf("Configuration Error : Service %s : %s ci type isn't supported yet", r.Name, r.CIType)
 			}
 			if r.CIHost == "" {
-				return s, fmt.Errorf("Service %s : Missing 'ci_host' field", r.Name)
+				return s, fmt.Errorf("Configuration Error : Service %s : Missing 'ci_host' field", r.Name)
 			}
 			s.BuildAPI = fmt.Sprintf("%s/api/repos/%s/builds", strings.TrimSuffix(r.CIHost, "/"), r.Repo)
 			s.BuildURL = fmt.Sprintf("%s/%s", strings.TrimSuffix(r.CIHost, "/"), r.Repo)
@@ -120,8 +119,8 @@ func (r *rawService) Parse() (Service, error) {
 	return s, nil
 }
 
-// Load loads the given fp (file path) to the C global configuration variable.
-func Load(fp string) error {
+// ParseConfiguration loads the given fp (file path) to the C global configuration variable.
+func ParseConfiguration(fp string) error {
 	var err error
 	var raw rawConfiguration
 	var conf []byte
@@ -134,11 +133,14 @@ func Load(fp string) error {
 	if err = yaml.Unmarshal(conf, &raw); err != nil {
 		return err
 	}
+	if raw.DefaultServiceInterval == "" || raw.DefaultRepoInterval == "" {
+		return fmt.Errorf("Configuration Error : Both 'default_service_interval' and 'default_repo_interval' are mandatory fields")
+	}
 	if sd, err = time.ParseDuration(raw.DefaultServiceInterval); err != nil {
-		return err
+		return fmt.Errorf("Configuration Error : Could not parse 'default_service_interval' (%s) : %s", raw.DefaultServiceInterval, err)
 	}
 	if rd, err = time.ParseDuration(raw.DefaultRepoInterval); err != nil {
-		return err
+		return fmt.Errorf("Configuration Error : Could not parse 'default_repo_interval' (%s) : %s", raw.DefaultRepoInterval, err)
 	}
 	ss, err := raw.ParseServices()
 	if err != nil {
@@ -153,5 +155,6 @@ func Load(fp string) error {
 		Debug:                  raw.Debug,
 		Services:               ss,
 	}
+	All = ss
 	return nil
 }

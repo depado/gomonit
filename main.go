@@ -1,13 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/Depado/gomonit/admin"
 	"github.com/Depado/gomonit/auth"
-	"github.com/Depado/gomonit/conf"
 	"github.com/Depado/gomonit/models"
 	"github.com/Depado/gomonit/views"
 )
@@ -52,20 +52,17 @@ func main() {
 	var err error
 
 	// Configuration parsing and services initialization
-	if err = conf.Load("conf.yml"); err != nil {
-		log.Fatal(err)
-	}
-	if err = models.ParseConf(); err != nil {
+	if err = models.ParseConfiguration("conf.yml"); err != nil {
 		log.Fatal(err)
 	}
 	// Starting monitoring of services
 	go models.All.Monitor()
 
 	// Gin initialization
-	if !conf.C.Debug {
+	if !models.C.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	router := SetupRouter()
-	router.Run(conf.C.Listen)
+	router.Run(fmt.Sprintf("%s:%s", models.C.Host, models.C.Port))
 }

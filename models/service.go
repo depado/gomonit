@@ -7,10 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
-
-	"github.com/Depado/govue/conf"
 )
 
 // All represents all the services
@@ -71,8 +68,7 @@ func (s *Service) FetchStatus() {
 }
 
 // FetchBuilds checks the last build
-func (s *Service) FetchBuilds(wg *sync.WaitGroup) {
-	defer wg.Done()
+func (s *Service) FetchBuilds() {
 	resp, err := http.Get(s.BuildAPI)
 	if err != nil {
 		log.Printf("[%s][ERROR] While requesting build status : %v\n", s.Name, err)
@@ -92,8 +88,7 @@ func (s *Service) FetchBuilds(wg *sync.WaitGroup) {
 }
 
 // FetchCommits fetches the last commits associated to the repository
-func (s *Service) FetchCommits(wg *sync.WaitGroup) {
-	defer wg.Done()
+func (s *Service) FetchCommits() {
 	u := strings.Split(s.RepoURL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits", u[len(u)-2], u[len(u)-1])
 	client := &http.Client{}
@@ -101,8 +96,8 @@ func (s *Service) FetchCommits(wg *sync.WaitGroup) {
 	if err != nil {
 		log.Printf("[%s][ERROR][COMMITS] Couldn't create request : %v\n", s.Name, err)
 	}
-	if conf.C.GithubOAuthToken != "" {
-		req.Header.Add("Authorization", "token "+conf.C.GithubOAuthToken)
+	if C.GithubOAuthToken != "" {
+		req.Header.Add("Authorization", "token "+C.GithubOAuthToken)
 	}
 	res, err := client.Do(req)
 	if err != nil {
@@ -119,8 +114,7 @@ func (s *Service) FetchCommits(wg *sync.WaitGroup) {
 }
 
 // FetchRepoInfos fetches the repository information
-func (s *Service) FetchRepoInfos(wg *sync.WaitGroup) {
-	defer wg.Done()
+func (s *Service) FetchRepoInfos() {
 	u := strings.Split(s.RepoURL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", u[len(u)-2], u[len(u)-1])
 	client := &http.Client{}
@@ -128,8 +122,8 @@ func (s *Service) FetchRepoInfos(wg *sync.WaitGroup) {
 	if err != nil {
 		log.Printf("[%s][ERROR][REPO] Couldn't create request : %v\n", s.Name, err)
 	}
-	if conf.C.GithubOAuthToken != "" {
-		req.Header.Add("Authorization", "token "+conf.C.GithubOAuthToken)
+	if C.GithubOAuthToken != "" {
+		req.Header.Add("Authorization", "token "+C.GithubOAuthToken)
 	}
 	res, err := client.Do(req)
 	if err != nil {
@@ -153,39 +147,39 @@ type Services []*Service
 
 // Monitor allows to monitor Services every interval delay
 func (ss Services) Monitor() {
-	var work sync.Mutex
-	var wg sync.WaitGroup
-
-	go func() {
-		rtc := time.NewTicker(conf.C.RepoInterval)
-		for {
-			work.Lock()
-			for _, s := range ss {
+	for _, s := range ss {
+		go func(s *Service) {
+			var rtc *time.Ticker
+			if s.RepoInterval != 0 {
+				rtc = time.NewTicker(s.RepoInterval)
+			} else {
+				rtc = time.NewTicker(C.DefaultRepoInterval)
+			}
+			for {
 				if s.BuildAPI != "" {
-					wg.Add(1)
-					go s.FetchBuilds(&wg)
+					go s.FetchBuilds()
 				}
 				if s.RepoURL != "" {
-					wg.Add(2)
-					go s.FetchCommits(&wg)
-					go s.FetchRepoInfos(&wg)
+					go s.FetchCommits()
+					go s.FetchRepoInfos()
 				}
+				<-rtc.C
 			}
-			wg.Wait()
-			work.Unlock()
-			<-rtc.C
-		}
-	}()
-	stc := time.NewTicker(conf.C.ServiceInterval)
-	for {
-		work.Lock()
-		for _, s := range ss {
-			if s.URL != "" {
-				s.FetchStatus()
+		}(s)
+		go func(s *Service) {
+			var rtc *time.Ticker
+			if s.ServiceInterval != 0 {
+				rtc = time.NewTicker(s.ServiceInterval)
+			} else {
+				rtc = time.NewTicker(C.DefaultServiceInterval)
 			}
-		}
-		work.Unlock()
-		<-stc.C
+			for {
+				if s.URL != "" {
+					s.FetchStatus()
+				}
+				<-rtc.C
+			}
+		}(s)
 	}
 }
 

@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Depado/gomonit/conf"
+	"github.com/Depado/govue/conf"
 )
 
 // All represents all the services
@@ -18,15 +18,23 @@ var All Services
 
 // Service is a single service
 type Service struct {
+	ID              string        `json:"id"`
 	Name            string        `json:"name"`
 	URL             string        `json:"url"`
 	ShortURL        string        `json:"short_url"`
-	Description     string        `json:"description"`
-	RepoURL         string        `json:"repo_url"`
-	RepoStars       int           `json:"repo_stars"`
-	RepoForks       int           `json:"repo_forks"`
-	RepoWatchers    int           `json:"repo_watchers"`
 	Host            string        `json:"host"`
+	ServiceInterval time.Duration `json:"service_interval"`
+
+	Description  string        `json:"description"`
+	RepoURL      string        `json:"repo_url"`
+	RepoStars    int           `json:"repo_stars"`
+	RepoForks    int           `json:"repo_forks"`
+	RepoWatchers int           `json:"repo_watchers"`
+	RepoType     string        `json:"repo_type"`
+	RepoHost     string        `json:"repo_host"`
+	Repo         string        `json:"repo"`
+	RepoInterval time.Duration `json:"repo_interval"`
+
 	BuildAPI        string        `json:"build_api"`
 	BuildURL        string        `json:"build_url"`
 	CurrentBuildURL string        `json:"current_build_url"`

@@ -12,27 +12,17 @@ import (
 	"github.com/Depado/gomonit/views"
 )
 
-func main() {
-	var err error
+// APIVersion is the current API version.
+const APIVersion = "1"
 
-	// Configuration parsing and services initialization
-	if err = conf.Load("conf.yml"); err != nil {
-		log.Fatal(err)
-	}
-	if err = models.ParseConf(); err != nil {
-		log.Fatal(err)
-	}
-	// Starting monitoring of services
-	go models.All.Monitor()
-
-	// Gin initialization
-	if !conf.C.Debug {
-		gin.SetMode(gin.ReleaseMode)
-	}
+// SetupRouter sets up the router and its routes as well as the templates and
+// static files routes.
+func SetupRouter() *gin.Engine {
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./assets")
 
+	// Main view
 	r.GET("/", views.Index)
 
 	// API routes declaration
@@ -55,7 +45,27 @@ func main() {
 		ar.GET("/hosts/new", admin.NewHost)
 		ar.POST("/hosts/new", admin.PostNewHost)
 	}
+	return r
+}
 
-	// Running
-	r.Run(conf.C.Listen)
+func main() {
+	var err error
+
+	// Configuration parsing and services initialization
+	if err = conf.Load("conf.yml"); err != nil {
+		log.Fatal(err)
+	}
+	if err = models.ParseConf(); err != nil {
+		log.Fatal(err)
+	}
+	// Starting monitoring of services
+	go models.All.Monitor()
+
+	// Gin initialization
+	if !conf.C.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	router := SetupRouter()
+	router.Run(conf.C.Listen)
 }

@@ -18,8 +18,8 @@ type Conf struct {
 	Server           Server `yaml:"server"`
 	Logger           Logger `yaml:"logger"`
 	GithubOAuthToken string `yaml:"github_oauth_token"`
-	rServiceInterval string `yaml:"service_interval" default:"10m"`
-	rRepoInterval    string `yaml:"repo_interval" default:"10m"`
+	RServiceInterval string `yaml:"service_interval" default:"10m"`
+	RRepoInterval    string `yaml:"repo_interval" default:"10m"`
 
 	ServiceInterval time.Duration
 	RepoInterval    time.Duration
@@ -38,11 +38,11 @@ func (c *Conf) Parse() error {
 	}
 	c.Logger.Configure()
 
-	if c.ServiceInterval, err = time.ParseDuration(c.rServiceInterval); err != nil {
-		return errors.Wrapf(err, "configuration error : couldn't parse 'service_interval' (%s)", c.rServiceInterval)
+	if c.ServiceInterval, err = time.ParseDuration(c.RServiceInterval); err != nil {
+		return errors.Wrapf(err, "configuration error: couldn't parse 'service_interval' (%s)", c.RServiceInterval)
 	}
-	if c.RepoInterval, err = time.ParseDuration(c.rRepoInterval); err != nil {
-		return errors.Wrapf(err, "configuration error: couldn't parse 'repo_interval' (%s)", c.rRepoInterval)
+	if c.RepoInterval, err = time.ParseDuration(c.RRepoInterval); err != nil {
+		return errors.Wrapf(err, "configuration error: couldn't parse 'repo_interval' (%s)", c.RRepoInterval)
 	}
 
 	return nil

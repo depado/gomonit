@@ -22,13 +22,13 @@
 </head>
 
 <body>
-    {{ range $index, $element := .all }} {{ if .BuildAPI }}
+    {{ range $index, $element := .all }} {{ if .CI }}
     <div class="ui left wide sidebar vertical menu" id="sidebar-builds-{{ $index }}">
         <h2 class="ui center aligned icon header">
           <img src="/static/custom/drone.svg" alt="drone"><br />
-          <a href="{{ .BuildURL }}" target="_blank">{{ .Name }}</a>
+          <a href="{{ .CI.URL }}" target="_blank">{{ .Name }}</a>
           <div class="sub header">Last Builds</div>
-        </h2> {{ $buildurl := .BuildURL }}
+        </h2> {{ $buildurl := .CI.URL }}
         <div class="ui feed">
             {{ range $i, $e := .LastBuilds }}
             <div class="event">
@@ -62,11 +62,11 @@
             {{ end }}
         </div>
     </div>
-    {{ end }} {{ end }} {{ range $index, $element := .all }} {{ if .RepoURL }}
+    {{ end }} {{ end }} {{ range $index, $element := .all }} {{ if .Repo }}
     <div class="ui left wide sidebar vertical menu" id="sidebar-commits-{{ $index }}">
         <h2 class="ui center aligned icon header">
           <i class="github alternate icon"></i>
-          <a href="{{ .RepoURL }}" target="_blank">{{ .Name }}</a>
+          <a href="{{ .Repo.URL }}" target="_blank">{{ .Name }}</a>
           <div class="sub header">Last Commits</div>
         </h2>
         <br />
@@ -124,7 +124,7 @@
                         {{ end }}
                     {{ end }}
                     <br />
-                    {{ if .RepoURL }}
+                    {{ if .Repo }}
                         <a href="#" style="color:#6A6AFF;" id="commits-{{ $index }}" class="tooltip-up" data-content="View Recent Commits" data-variation="tiny"><i class="github alternate icon"></i> Commits</a>
                     {{ else }}
                         <i class="github alternate icon"></i> No Commits
@@ -148,15 +148,15 @@
                 </div>
                 <br />
                 <div class="extra content" style="text-align: center;">
-                {{ if .RepoURL }}
-                    <a href="{{ .RepoURL }}/stargazers" target="_blank">
-                        <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .RepoStars }}</button>
+                {{ if .Repo }}
+                    <a href="{{ .Repo.URL }}/stargazers" target="_blank">
+                        <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .Repo.Stars }}</button>
                     </a>
-                    <a href="{{ .RepoURL }}/network" target="_blank">
-                        <button class="ui tiny teal basic compact labeled icon button"><i class="fork icon"></i>{{ .RepoForks }}</button>
+                    <a href="{{ .Repo.URL }}/network" target="_blank">
+                        <button class="ui tiny teal basic compact labeled icon button"><i class="fork icon"></i>{{ .Repo.Forks}}</button>
                     </a>
-                    <a href="{{ .RepoURL }}/watchers" target="_blank">
-                        <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .RepoWatchers }}</button>
+                    <a href="{{ .Repo.URL }}/watchers" target="_blank">
+                        <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .Repo.Watchers }}</button>
                     </a>
                 {{ else }}
                     <button class="ui tiny disabled teal basic compact labeled icon button"><i class="star icon"></i>-</button>

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Depado/gomonit/admin"
-	"github.com/Depado/gomonit/auth"
+	"github.com/Depado/gomonit/conf"
 	"github.com/Depado/gomonit/models"
 	"github.com/Depado/gomonit/views"
 )
@@ -32,37 +32,31 @@ func SetupRouter() *gin.Engine {
 		api.GET("/dump/all", views.DumpAll)
 		api.GET("/dump/own", views.DumpOwn)
 	}
-
-	// Authentication routes declaration
-	r.GET("/login", auth.Login)
-	r.POST("/login", auth.PostLogin)
-
-	// Admin routes declaration
-	ar := r.Group("/admin")
-	{
-		ar.GET("/", admin.Root)
-		ar.GET("/hosts", admin.Hosts)
-		ar.GET("/hosts/new", admin.NewHost)
-		ar.POST("/hosts/new", admin.PostNewHost)
-	}
 	return r
 }
 
 func main() {
 	var err error
 
-	// Configuration parsing and services initialization
-	if err = models.ParseConfiguration("conf.yml"); err != nil {
-		log.Fatal(err)
+	if err = conf.Load("conf.yml"); err != nil {
+		logrus.WithError(err).Fatal("Couldn't load configuration")
 	}
+
+	if err = models.InitializeServices(); err != nil {
+		logrus.WithError(err).Fatal("Couldn't initialize services")
+	}
+
 	// Starting monitoring of services
 	go models.All.Monitor()
 
 	// Gin initialization
-	if !models.C.Debug {
+	if !conf.C.Server.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	router := SetupRouter()
-	router.Run(fmt.Sprintf("%s:%s", models.C.Host, models.C.Port))
+	// Set router
+	r := SetupRouter()
+	if err = r.Run(fmt.Sprintf("%s:%d", conf.C.Server.Host, conf.C.Server.Port)); err != nil {
+		logrus.WithError(err).Fatal("Couldn't start server")
+	}
 }

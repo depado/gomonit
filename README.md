@@ -5,9 +5,16 @@
 [![Build Status](https://drone.depado.eu/api/badges/Depado/gomonit/status.svg)](https://drone.depado.eu/Depado/gomonit)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Depado/bfchroma/blob/master/LICENSE)
 
-Small soft to check if your services are running, providing a web interface.
+Small soft to check if your services are running, providing a web interface.  
 
-Using gin and semantic-ui
+It also integrates with Github to fetch your commits, and with drone to fetch
+the build list. Other versionning system and CI system will eventually be
+supported in the future.
+
+## Note
+
+This project is currently being refactored and is unstable. Once the refactor
+is completed, a release will be issued.
 
 ## Status and Goals
 

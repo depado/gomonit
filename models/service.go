@@ -8,10 +8,33 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/Depado/gomonit/conf"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // All represents all the services
 var All Services
+
+// Repo holds information on a repository
+type Repo struct {
+	URL  string `json:"url"`
+	Path string `json:"path"`
+	Type string `json:"type"`
+	Host string `json:"host"`
+
+	Description string `json:"description"`
+	Stars       int    `json:"stars"`
+	Forks       int    `json:"forks"`
+	Watchers    int    `json:"watchers"`
+}
+
+// CI represents data from the CI
+type CI struct {
+	API string `json:"api"`
+	URL string `json:"url"`
+}
 
 // Service is a single service
 type Service struct {
@@ -22,26 +45,89 @@ type Service struct {
 	Host            string        `json:"host"`
 	ServiceInterval time.Duration `json:"service_interval"`
 
-	Description  string        `json:"description"`
-	RepoURL      string        `json:"repo_url"`
-	RepoStars    int           `json:"repo_stars"`
-	RepoForks    int           `json:"repo_forks"`
-	RepoWatchers int           `json:"repo_watchers"`
-	RepoType     string        `json:"repo_type"`
-	RepoHost     string        `json:"repo_host"`
-	Repo         string        `json:"repo"`
-	RepoInterval time.Duration `json:"repo_interval"`
+	Repo *Repo `json:"repo,omitempty"`
+	CI   *CI   `json:"ci,omitempty"`
 
-	BuildAPI        string        `json:"build_api"`
-	BuildURL        string        `json:"build_url"`
-	CurrentBuildURL string        `json:"current_build_url"`
 	Last            string        `json:"last"`
 	RespTime        time.Duration `json:"resp_time"`
 	Status          int           `json:"status"`
 	Icon            string        `json:"icon"`
+	CurrentBuildURL string        `json:"current_build"`
 	LastBuilds      Builds        `json:"last_builds"`
 	LastCommits     Commits       `json:"last_commits"`
 	Own             bool          `json:"own"`
+}
+
+// InitializeServices grabs all the services from the configuration and
+// initializes the All variable
+func InitializeServices() error {
+	var err error
+	All, err = ParseServicesFromConf(conf.C)
+	return err
+}
+
+// ParseServicesFromConf parses all the services in the configuration struct
+// and returns a slice of pointers to Service
+func ParseServicesFromConf(c conf.Conf) (Services, error) {
+	var err error
+	var s *Service
+	var ss Services
+
+	for _, cs := range c.Services {
+		if s, err = NewServiceFromConf(cs); err != nil {
+			return ss, errors.Wrap(err, "parse all services")
+		}
+		ss = append(ss, s)
+	}
+
+	return ss, nil
+}
+
+// NewServiceFromConf parses a configured service and returns a service
+func NewServiceFromConf(cs conf.Service) (*Service, error) {
+	s := Service{
+		Name: cs.Name,
+		Icon: "/static/custom/" + cs.Icon,
+		Own:  cs.Own,
+		Host: cs.Host,
+	}
+
+	if s.Name == "" {
+		return &s, fmt.Errorf("configuration error: each service needs a 'name' field")
+	}
+	if cs.Repo != nil {
+		if cs.Repo.Type != "github" {
+			return &s, fmt.Errorf("configuration error: service %s - %s repo type isn't supported", cs.Name, cs.Repo.Type)
+		}
+		s.Repo = &Repo{
+			Path: cs.Repo.Path,
+			Type: cs.Repo.Type,
+		}
+		switch s.Repo.Type {
+		case "github":
+			s.Repo.Host = "https://github.com"
+			s.Repo.URL = fmt.Sprintf("%s/%s", strings.TrimSuffix(cs.Repo.Host, "/"), cs.Repo.Path)
+		}
+		if cs.CI != nil {
+			if cs.CI.Type != "drone" {
+				return &s, fmt.Errorf("configuration error: service %s - %s ci type isn't supported", cs.Name, cs.CI.Type)
+			}
+			if cs.CI.Host == "" {
+				return &s, fmt.Errorf("configuration error: service %s - ci missing 'host' field", cs.Name)
+			}
+			s.CI = &CI{
+				API: fmt.Sprintf("%s/api/repos/%s/builds", strings.TrimSuffix(cs.CI.Host, "/"), cs.Repo.Path),
+				URL: fmt.Sprintf("%s/%s", strings.TrimSuffix(cs.CI.Host, "/"), cs.Repo.Path),
+			}
+		}
+	}
+	if cs.URL != "" {
+		s.URL = cs.URL
+		short := strings.TrimPrefix(cs.URL, "http://")
+		s.ShortURL = strings.TrimPrefix(short, "https://")
+	}
+
+	return &s, nil
 }
 
 // FetchStatus checks if the service is running
@@ -69,7 +155,7 @@ func (s *Service) FetchStatus() {
 
 // FetchBuilds checks the last build
 func (s *Service) FetchBuilds() {
-	resp, err := http.Get(s.BuildAPI)
+	resp, err := http.Get(s.CI.API)
 	if err != nil {
 		log.Printf("[%s][ERROR] While requesting build status : %v\n", s.Name, err)
 		return
@@ -89,15 +175,15 @@ func (s *Service) FetchBuilds() {
 
 // FetchCommits fetches the last commits associated to the repository
 func (s *Service) FetchCommits() {
-	u := strings.Split(s.RepoURL, "/")
+	u := strings.Split(s.Repo.URL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits", u[len(u)-2], u[len(u)-1])
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Printf("[%s][ERROR][COMMITS] Couldn't create request : %v\n", s.Name, err)
 	}
-	if C.GithubOAuthToken != "" {
-		req.Header.Add("Authorization", "token "+C.GithubOAuthToken)
+	if conf.C.GithubOAuthToken != "" {
+		req.Header.Add("Authorization", "token "+conf.C.GithubOAuthToken)
 	}
 	res, err := client.Do(req)
 	if err != nil {
@@ -105,6 +191,14 @@ func (s *Service) FetchCommits() {
 		return
 	}
 	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		logrus.WithFields(logrus.Fields{
+			"service": s.Name,
+			"code":    res.StatusCode,
+			"message": res.Status,
+		}).Warn("Couldn't retrieve commits")
+		return
+	}
 	var all Commits
 	if err = json.NewDecoder(res.Body).Decode(&all); err != nil {
 		log.Printf("[%s][ERROR][COMMITS] Couldn't decode response : %v\n", s.Name, err)
@@ -115,15 +209,15 @@ func (s *Service) FetchCommits() {
 
 // FetchRepoInfos fetches the repository information
 func (s *Service) FetchRepoInfos() {
-	u := strings.Split(s.RepoURL, "/")
+	u := strings.Split(s.Repo.URL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", u[len(u)-2], u[len(u)-1])
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Printf("[%s][ERROR][REPO] Couldn't create request : %v\n", s.Name, err)
 	}
-	if C.GithubOAuthToken != "" {
-		req.Header.Add("Authorization", "token "+C.GithubOAuthToken)
+	if conf.C.GithubOAuthToken != "" {
+		req.Header.Add("Authorization", "token "+conf.C.GithubOAuthToken)
 	}
 	res, err := client.Do(req)
 	if err != nil {
@@ -136,10 +230,10 @@ func (s *Service) FetchRepoInfos() {
 		log.Printf("[%s][ERROR][REPO] Couldn't decode response : %v\n", s.Name, err)
 		return
 	}
-	s.RepoStars = repo.StargazersCount
-	s.RepoForks = repo.ForksCount
-	s.RepoWatchers = repo.SubscribersCount
-	s.Description = repo.Description
+	s.Repo.Stars = repo.StargazersCount
+	s.Repo.Forks = repo.ForksCount
+	s.Repo.Watchers = repo.SubscribersCount
+	s.Repo.Description = repo.Description
 }
 
 // Services represents a list of services
@@ -149,38 +243,30 @@ type Services []*Service
 func (ss Services) Monitor() {
 	for _, s := range ss {
 		go func(s *Service) {
-			var rtc *time.Ticker
-			if s.RepoInterval != 0 {
-				rtc = time.NewTicker(s.RepoInterval)
-			} else {
-				rtc = time.NewTicker(C.DefaultRepoInterval)
-			}
+			rtc := time.NewTicker(conf.C.RepoInterval)
 			for {
-				if s.BuildAPI != "" {
+				if s.CI != nil {
 					go s.FetchBuilds()
 				}
-				if s.RepoURL != "" {
+				if s.Repo != nil {
 					go s.FetchCommits()
 					go s.FetchRepoInfos()
 				}
 				<-rtc.C
 			}
 		}(s)
-		go func(s *Service) {
-			var rtc *time.Ticker
-			if s.ServiceInterval != 0 {
-				rtc = time.NewTicker(s.ServiceInterval)
-			} else {
-				rtc = time.NewTicker(C.DefaultServiceInterval)
-			}
-			for {
+	}
+	go func(iss Services) {
+		rtc := time.NewTicker(conf.C.ServiceInterval)
+		for {
+			for _, s := range iss {
 				if s.URL != "" {
 					s.FetchStatus()
 				}
-				<-rtc.C
 			}
-		}(s)
-	}
+			<-rtc.C
+		}
+	}(ss)
 }
 
 // ServiceForm is the struct representing a Service (to add, or modify)

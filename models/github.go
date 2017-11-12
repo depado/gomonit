@@ -44,12 +44,18 @@ type Commit struct {
 		} `json:"tree"`
 		URL          string `json:"url"`
 		CommentCount int    `json:"comment_count"`
+		Verification struct {
+			Verified  bool        `json:"verified"`
+			Reason    string      `json:"reason"`
+			Signature interface{} `json:"signature"`
+			Payload   interface{} `json:"payload"`
+		} `json:"verification"`
 	} `json:"commit"`
 	URL         string `json:"url"`
 	HTMLURL     string `json:"html_url"`
 	CommentsURL string `json:"comments_url"`
 	Author      GHUser `json:"author"`
-	Commiter    GHUser `json:"committer"`
+	Committer   GHUser `json:"committer"`
 	Parents     []struct {
 		Sha     string `json:"sha"`
 		URL     string `json:"url"`

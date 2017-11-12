@@ -26,3 +26,4 @@ _testmain.go
 gomonit
 conf.yml
 assets/custom/
+vendor/

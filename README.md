@@ -1,5 +1,9 @@
 # gomonit
+![Go Version](https://img.shields.io/badge/go-1.8-brightgreen.svg)
+![Go Version](https://img.shields.io/badge/go-1.9-brightgreen.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Depado/gomonit)](https://goreportcard.com/report/github.com/Depado/gomonit)
+[![Build Status](https://drone.depado.eu/api/badges/Depado/gomonit/status.svg)](https://drone.depado.eu/Depado/gomonit)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Depado/bfchroma/blob/master/LICENSE)
 
 Small soft to check if your services are running, providing a web interface.
 

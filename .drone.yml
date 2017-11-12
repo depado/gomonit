@@ -1,21 +1,24 @@
-build:
-  image: armhfbuild/golang:$$GO_VERSION
-  commands:
-    - go get
-    - go get ./...
-    - go build
-    - go test ./...
+workspace:
+  base: /go
+  path: src/github.com/Depado/goploader/
 
 matrix:
-  GO_VERSION:
-    - 1.6
-    - 1.5
+  ARCH:
+    - arm
+    - amd64
 
-notify:
-  irc:
-    prefix: GoMonit Build
-    nick: Depadrone
-    channel: n0sec-bot
-    server:
-      host: irc.freenode.net
-      port: 6667
+pipeline:
+  prerequisites:
+    image: "golang:1.9"
+    commands: 
+      - go get -u github.com/golang/dep/cmd/dep
+      - dep ensure
+  
+  build:
+    image: "golang:1.9"
+    group: build
+    commands:
+      - go build
+    environment:
+      - GOARCH=${ARCH}
+      - CGO_ENABLED=0

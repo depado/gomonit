@@ -3,6 +3,7 @@
 ![Go Version](https://img.shields.io/badge/go-1.9-brightgreen.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Depado/gomonit)](https://goreportcard.com/report/github.com/Depado/gomonit)
 [![Build Status](https://drone.depado.eu/api/badges/Depado/gomonit/status.svg)](https://drone.depado.eu/Depado/gomonit)
+[![codecov](https://codecov.io/gh/Depado/gomonit/branch/master/graph/badge.svg)](https://codecov.io/gh/Depado/gomonit)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Depado/bfchroma/blob/master/LICENSE)
 
 Small soft to check if your services are running, providing a web interface.  
@@ -10,11 +11,6 @@ Small soft to check if your services are running, providing a web interface.
 It also integrates with Github to fetch your commits, and with drone to fetch
 the build list. Other versionning system and CI system will eventually be
 supported in the future.
-
-## Note
-
-This project is currently being refactored and is unstable. Once the refactor
-is completed, a release will be issued.
 
 ## Status and Goals
 

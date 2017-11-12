@@ -22,3 +22,12 @@ pipeline:
     environment:
       - GOARCH=${ARCH}
       - CGO_ENABLED=0
+
+  test:
+    image: golang:1.9
+    commands:
+      - go test -race -coverprofile=coverage.txt -covermode=atomic
+  
+  codecov:
+    image: robertstettner/drone-codecov
+    secrets: [ codecov_token ]

@@ -27,3 +27,4 @@ gomonit
 conf.yml
 assets/custom/
 vendor/
+coverage.txt

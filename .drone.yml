@@ -26,7 +26,7 @@ pipeline:
   test:
     image: golang:1.9
     commands:
-      - test.sh
+      - bash test.sh
   
   codecov:
     image: robertstettner/drone-codecov

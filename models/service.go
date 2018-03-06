@@ -175,33 +175,31 @@ func (s *Service) FetchBuilds() {
 
 // FetchCommits fetches the last commits associated to the repository
 func (s *Service) FetchCommits() {
+	clog := logrus.WithFields(logrus.Fields{"action": "commits", "service": s.Name})
 	u := strings.Split(s.Repo.URL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits", u[len(u)-2], u[len(u)-1])
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[%s][ERROR][COMMITS] Couldn't create request : %v\n", s.Name, err)
+		clog.WithError(err).Error("Couldn't create request")
+		return
 	}
 	if conf.C.GithubOAuthToken != "" {
 		req.Header.Add("Authorization", "token "+conf.C.GithubOAuthToken)
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		log.Printf("[%s][ERROR][COMMITS] While requesting : %v\n", s.Name, err)
+		clog.WithError(err).Warn("Couldn't perform request")
 		return
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		logrus.WithFields(logrus.Fields{
-			"service": s.Name,
-			"code":    res.StatusCode,
-			"message": res.Status,
-		}).Warn("Couldn't retrieve commits")
+		clog.WithField("code", res.StatusCode).Warn("Couldn't retrieve commits")
 		return
 	}
 	var all Commits
 	if err = json.NewDecoder(res.Body).Decode(&all); err != nil {
-		log.Printf("[%s][ERROR][COMMITS] Couldn't decode response : %v\n", s.Name, err)
+		clog.WithError(err).Error("Couldn't decode response")
 		return
 	}
 	s.LastCommits = all
@@ -209,25 +207,27 @@ func (s *Service) FetchCommits() {
 
 // FetchRepoInfos fetches the repository information
 func (s *Service) FetchRepoInfos() {
+	clog := logrus.WithFields(logrus.Fields{"action": "repo", "service": s.Name})
 	u := strings.Split(s.Repo.URL, "/")
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", u[len(u)-2], u[len(u)-1])
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[%s][ERROR][REPO] Couldn't create request : %v\n", s.Name, err)
+		clog.WithError(err).Error("Couldn't create request")
+		return
 	}
 	if conf.C.GithubOAuthToken != "" {
 		req.Header.Add("Authorization", "token "+conf.C.GithubOAuthToken)
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		log.Printf("[%s][ERROR][REPO] While requesting : %v\n", s.Name, err)
+		clog.WithError(err).Error("Couldn't perform request")
 		return
 	}
 	defer res.Body.Close()
 	var repo GHRepo
 	if err = json.NewDecoder(res.Body).Decode(&repo); err != nil {
-		log.Printf("[%s][ERROR][REPO] Couldn't decode response : %v\n", s.Name, err)
+		clog.WithError(err).Error("Couldn't decode response")
 		return
 	}
 	s.Repo.Stars = repo.StargazersCount
@@ -267,11 +267,4 @@ func (ss Services) Monitor() {
 			<-rtc.C
 		}
 	}(ss)
-}
-
-// ServiceForm is the struct representing a Service (to add, or modify)
-type ServiceForm struct {
-	Name     string `form:"name" binding:"required"`
-	URL      string `form:"url" binding:"required"`
-	ShortURL string `form:"shorturl" binding:"required"`
 }

@@ -101,7 +101,7 @@
             <div class="ui card {{ if eq .Status 200 }}green{{ else if eq .URL "" }}green{{ else }}red{{ end }}">
                 <div class="content">
                     <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" alt="{{ .Name }}" {{ end }}>
-                    <div class="header"><a href="#" class="tooltip-down" style="color: rgba(0,0,0,.85);" id="history-{{ $index }}" data-content="View History" data-variation="tiny">{{ .Name }}</a></div>
+                    <div class="header">{{ .Name }}</div>
                     <div class="meta">
                         <a href="{{ .URL }}">{{ if eq .ShortURL "" }}-{{ else }}{{ .ShortURL }}{{ end }}</a>
                     </div>

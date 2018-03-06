@@ -56,6 +56,10 @@ func main() {
 
 	// Set router
 	r := SetupRouter()
+	logrus.WithFields(logrus.Fields{
+		"port": conf.C.Server.Port,
+		"host": conf.C.Server.Host,
+	}).Info("Starting server")
 	if err = r.Run(fmt.Sprintf("%s:%d", conf.C.Server.Host, conf.C.Server.Port)); err != nil {
 		logrus.WithError(err).Fatal("Couldn't start server")
 	}

@@ -1,9 +1,10 @@
 package models
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -132,23 +133,26 @@ func NewServiceFromConf(cs conf.Service) (*Service, error) {
 
 // FetchStatus checks if the service is running
 func (s *Service) FetchStatus() {
-	client := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}}
-	req, err := http.NewRequest("GET", s.URL, nil)
-	if err != nil {
-		log.Printf("[%s][ERROR] While building request : %v\n", s.Name, err)
-		return
-	}
+	clog := logrus.WithFields(logrus.Fields{"action": "status", "service": s.Name})
+	tp := newTransport()
+	client := &http.Client{Transport: tp}
 	start := time.Now()
 	s.Last = start.Format("2006/01/02 15:04:05")
+
+	req, err := http.NewRequest("GET", s.URL, nil)
+	if err != nil {
+		clog.WithError(err).Error("Couldn't create request")
+		return
+	}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("[%s][ERROR] While requesting : %v\n", s.Name, err)
+		clog.WithError(err).Warn("Couldn't fetch status")
 		return
 	}
 	defer resp.Body.Close()
-	d := time.Since(start)
+	io.Copy(ioutil.Discard, resp.Body)
+
+	d := tp.ReqDuration()
 	s.RespTime = d - (d % time.Millisecond)
 	s.Status = resp.StatusCode
 }
@@ -242,9 +246,27 @@ type Services []*Service
 // Monitor allows to monitor Services every interval delay
 func (ss Services) Monitor() {
 	for _, s := range ss {
-		go func(s *Service) {
-			rtc := time.NewTicker(conf.C.RepoInterval)
-			for {
+		if s.URL != "" {
+			s.FetchStatus()
+		}
+	}
+	for _, s := range ss {
+		if s.CI != nil {
+			go s.FetchBuilds()
+		}
+		if s.Repo != nil {
+			go s.FetchCommits()
+			go s.FetchRepoInfos()
+		}
+	}
+
+	rtc := time.NewTicker(conf.C.RepoInterval)
+	stc := time.NewTicker(conf.C.ServiceInterval)
+	for {
+		select {
+		case <-rtc.C:
+			logrus.WithField("type", "repo").Debug("Started background routine")
+			for _, s := range ss {
 				if s.CI != nil {
 					go s.FetchBuilds()
 				}
@@ -252,19 +274,14 @@ func (ss Services) Monitor() {
 					go s.FetchCommits()
 					go s.FetchRepoInfos()
 				}
-				<-rtc.C
 			}
-		}(s)
-	}
-	go func(iss Services) {
-		rtc := time.NewTicker(conf.C.ServiceInterval)
-		for {
-			for _, s := range iss {
+		case <-stc.C:
+			logrus.WithField("type", "status").Debug("Started background routine")
+			for _, s := range ss {
 				if s.URL != "" {
 					s.FetchStatus()
 				}
 			}
-			<-rtc.C
 		}
-	}(ss)
+	}
 }

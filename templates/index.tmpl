@@ -18,6 +18,28 @@
             background-image: url("static/img/body_bg.png");
             background-repeat: repeat;
         }
+        .extra.content > a {
+            color: rgba(0, 0, 0, 0.4);
+            transition-property: none !important;
+            transform: none !important;
+            animation: none !important;
+        }
+        .ui.card > .extra a:not(.ui):hover, .ui.cards > .card > .extra a:not(.ui):hover {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        .ui.card > .content .star.icon:hover, .ui.cards > .card > .content .star.icon:hover {
+            color: rgba(0, 0, 0, 0.4);
+            opacity: .75;
+        }
+        .repo {
+            margin-left: 20px;
+        }
+        .ui.card > .content, .ui.cards > .card > .top.content {
+            padding: 1em 1em 0em;
+        }
+        .ui.feed {
+            margin-left: 20px;
+        }
     </style>
 </head>
 
@@ -76,9 +98,9 @@
                 <div class="label">
                     <img src="{{ if ne .Author.AvatarURL " " }}{{ .Author.AvatarURL }}{{ else }}/static/img/anon.jpg{{ end }}" alt="avatar">
                 </div>
-                <div class="content">
+                <div class="top content">
                     <div class="summary">
-                        <a class="user" href="{{ .Author.HTMLURL }}" target="_blank">{{ .Commit.Author.Name }}</a> authored
+                        <a class="user" href="{{ .Author.HTMLURL }}" target="_blank">{{ .Author.Login }}</a> authored
                     </div>
                     <div class="meta">
                         <i class="clock icon"></i> {{ .Commit.Author.Date }}
@@ -99,13 +121,12 @@
         <div class="ui fluid centered stackable cards">
             {{ range $index, $element := .all }}
             <div class="ui card {{ if eq .Status 200 }}green{{ else if eq .URL "" }}green{{ else }}red{{ end }}">
-                <div class="content">
+                <div class="top content">
                     <img class="right floated mini ui image" {{ if .Icon }}src="{{ .Icon }}" alt="{{ .Name }}" {{ end }}>
                     <div class="header">{{ .Name }}</div>
                     <div class="meta">
                         <a href="{{ .URL }}">{{ if eq .ShortURL "" }}-{{ else }}{{ .ShortURL }}{{ end }}</a>
                     </div>
-
                 </div>
                 <div class="extra content">
                     <i class="setting icon"></i>{{ if .RespTime }}{{ .RespTime }}{{ else }}-{{ end }}
@@ -113,7 +134,7 @@
                         {{ if .Host }}{{ .Host }}{{ else }}-{{ end}} <i class="server icon"></i>
                     </span>
                     <br />
-                    <i class="wait icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }}
+                    <i class="clock outline icon"></i>{{ if .Last }}{{ .Last }}{{ else }}-{{ end }}
                     {{ if eq .URL ""}}
                         <span class="right floated">- <i class="help icon"></i></span>
                     {{ else }}
@@ -129,7 +150,6 @@
                     {{ else }}
                         <i class="github alternate icon"></i> No Commits
                     {{ end }}
-
                     <span class="right floated">
                         {{ if .LastBuilds }}
                             {{ $last := index .LastBuilds 0 }}
@@ -141,27 +161,24 @@
                                 <a href="{{ .CurrentBuildURL }}" style="color:#DB2828;" id="builds-{{ $index }}" class="tooltip-up-right" data-content="View Recent Builds" data-variation="tiny">Failure <i class="configure icon"></i></a>
                             {{ end }}
                         {{ else }}
-                                No build <i class="configure icon"></i>
+                            No build <i class="configure icon"></i>
                         {{ end }}
                     </span>
-
                 </div>
                 <br />
                 <div class="extra content" style="text-align: center;">
                 {{ if .Repo }}
-                    <a href="{{ .Repo.URL }}/stargazers" target="_blank">
-                        <button class="ui tiny teal basic compact labeled icon button"><i class="star icon"></i>{{ .Repo.Stars }}</button>
+                    <a href='https://github.com{{ .Repo.URL }}/stargazers' target="_blank">
+                        <i class="star icon"></i>{{ .Repo.Stars }}
                     </a>
-                    <a href="{{ .Repo.URL }}/network" target="_blank">
-                        <button class="ui tiny teal basic compact labeled icon button"><i class="fork icon"></i>{{ .Repo.Forks}}</button>
+                    <a href='https://github.com{{ .Repo.URL }}/network' target="_blank" class="repo">
+                        <i class="fork icon"></i>{{ .Repo.Forks}}
                     </a>
-                    <a href="{{ .Repo.URL }}/watchers" target="_blank">
-                        <button class="ui tiny teal basic compact labeled icon button"><i class="eye icon"></i>{{ .Repo.Watchers }}</button>
+                    <a href='https://github.com{{ .Repo.URL }}/watchers' target="_blank" class="repo">
+                        <i class="eye icon"></i>{{ .Repo.Watchers }}
                     </a>
                 {{ else }}
-                    <button class="ui tiny disabled teal basic compact labeled icon button"><i class="star icon"></i>-</button>
-                    <button class="ui tiny disabled teal basic compact labeled icon button"><i class="fork icon"></i>-</button>
-                    <button class="ui tiny disabled teal basic compact labeled icon button"><i class="eye icon"></i>-</button>
+                    <span>&nbsp;</span>
                 {{ end }}
                 </div>
             </div>
@@ -212,11 +229,6 @@
         $("a[id^='builds-']").click(function(evt) {
             var buildsid = $(this).attr('id').split('-')[1];
             $("#sidebar-builds-" + buildsid).sidebar('toggle');
-            evt.preventDefault();
-        });
-        $("a[id^='history-']").click(function(evt) {
-            var historyid = $(this).attr('id').split('-')[1];
-            $("#sidebar-builds-" + historyid).sidebar('toggle');
             evt.preventDefault();
         });
     </script>

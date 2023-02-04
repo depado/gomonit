@@ -1,33 +1,96 @@
-workspace:
-  base: /go
-  path: src/github.com/Depado/gomonit/
+---
+kind: pipeline
+type: docker
 
-matrix:
-  ARCH:
-    - arm
-    - amd64
+steps:
+  - name: fetch
+    image: docker:git
+    commands:
+      - git fetch --tags
 
-pipeline:
-  prerequisites:
-    image: "golang:1.9"
-    commands: 
-      - go get -u github.com/golang/dep/cmd/dep
-      - dep ensure
-  
-  build:
-    image: "golang:1.9"
-    group: build
+  - name: build
+    image: golang:1.20.0
+    volumes:
+      - name: deps
+        path: /go
     commands:
       - go build
-    environment:
-      - GOARCH=${ARCH}
-      - CGO_ENABLED=0
 
-  test:
-    image: golang:1.9
+  - name: test
+    image: golang:1.20.0
+    volumes:
+      - name: deps
+        path: /go
     commands:
-      - bash test.sh
-  
-  codecov:
-    image: robertstettner/drone-codecov
-    secrets: [ codecov_token ]
+      - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+  - name: coverage
+    image: plugins/codecov
+    settings:
+      token:
+        from_secret: codecov_token
+      files:
+      - coverage.txt
+
+  - name: linter
+    image: golang:1.20.0
+    volumes:
+      - name: deps
+        path: /go
+    commands:
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s
+      - ./bin/golangci-lint run --timeout 5m
+      - rm -r ./bin/
+
+  - name: docker latest
+    image: plugins/docker
+    settings:
+      username: depado
+      password:
+        from_secret: ghcr_pat
+      repo: ghcr.io/depado/gomonit
+      registry: ghcr.io
+      tags:
+        - latest
+        - "${DRONE_COMMIT_SHA}"
+      build_args:
+        - version="latest"
+        - build="${DRONE_COMMIT_SHA}"
+    when:
+      event: [push]
+      branch: [main]
+
+  - name: docker tag
+    image: plugins/docker
+    settings:
+      username: depado
+      password:
+        from_secret: ghcr_pat
+      repo: ghcr.io/depado/gomonit
+      registry: ghcr.io
+      tags:
+        - latest
+        - "${DRONE_TAG}"
+        - "${DRONE_COMMIT_SHA}"
+      build_args:
+        - version="${DRONE_TAG}"
+        - build="${DRONE_COMMIT_SHA}"
+    when:
+      event: [tag]
+
+  - name: telegram
+    image: appleboy/drone-telegram
+    settings:
+      to: 790376882
+      format: markdown
+      token:
+        from_secret: telegram_token
+    when:
+      status:
+        - success
+        - failure
+
+volumes:
+  - name: deps
+    host:
+      path: /var/lib/cache/godeps/

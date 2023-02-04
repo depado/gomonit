@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -150,7 +149,7 @@ func (s *Service) FetchStatus() {
 		return
 	}
 	defer resp.Body.Close()
-	io.Copy(ioutil.Discard, resp.Body)
+	io.Copy(io.Discard, resp.Body) // nolint: errcheck
 
 	d := tp.ReqDuration()
 	s.RespTime = d - (d % time.Millisecond)

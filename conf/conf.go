@@ -1,7 +1,7 @@
 package conf
 
 import (
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/Depado/conftags"
@@ -53,7 +53,7 @@ func Load(fp string) error {
 	var err error
 	var c []byte
 
-	if c, err = ioutil.ReadFile(fp); err != nil {
+	if c, err = os.ReadFile(fp); err != nil {
 		return err
 	}
 	if err = yaml.Unmarshal(c, &C); err != nil {

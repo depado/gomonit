@@ -8,9 +8,6 @@ import (
 )
 
 func TestSetLogLevel(t *testing.T) {
-	type args struct {
-		lvl string
-	}
 	tests := []struct {
 		name     string
 		lvl      string

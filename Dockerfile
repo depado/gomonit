@@ -1,4 +1,4 @@
-FROM golang:1.9 AS build
+FROM golang:1.20 AS build
 RUN mkdir -p $GOPATH/src/github.com/Depado/gomonit
 ADD . $GOPATH/src/github.com/Depado/gomonit
 WORKDIR $GOPATH/src/github.com/Depado/gomonit
@@ -7,7 +7,7 @@ RUN dep ensure
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o gomonit
 RUN cp gomonit /
 
-FROM golang:1.9
+FROM golang:1.20
 COPY --from=build /gomonit /usr/bin/
 ENTRYPOINT ["/usr/bin/gomonit"]
 EXPOSE 8080

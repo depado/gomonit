@@ -6,7 +6,7 @@ import (
 
 	"github.com/Depado/conftags"
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 // C is the main exported conf

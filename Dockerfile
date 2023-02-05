@@ -1,13 +1,23 @@
-FROM golang:1.9 AS build
-RUN mkdir -p $GOPATH/src/github.com/Depado/gomonit
-ADD . $GOPATH/src/github.com/Depado/gomonit
-WORKDIR $GOPATH/src/github.com/Depado/gomonit
-RUN go get -u github.com/golang/dep/cmd/dep
-RUN dep ensure
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o gomonit
-RUN cp gomonit /
+# Build Step
+FROM golang:1.20-alpine AS builder
 
-FROM golang:1.9
-COPY --from=build /gomonit /usr/bin/
-ENTRYPOINT ["/usr/bin/gomonit"]
-EXPOSE 8080
+# Dependencies
+RUN apk update && apk add --no-cache upx make git
+
+# Source
+WORKDIR $GOPATH/src/github.com/Depado/gomonit
+COPY go.mod go.sum ./
+RUN go mod download
+RUN go mod verify
+COPY . .
+
+# Build
+RUN make tmp
+RUN upx --best --lzma /tmp/gomonit
+
+# Final Step
+FROM gcr.io/distroless/static
+COPY --from=builder /tmp/gomonit /go/bin/gomonit
+VOLUME [ "/data" ]
+WORKDIR /data
+ENTRYPOINT ["/go/bin/gomonit"]

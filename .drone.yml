@@ -9,7 +9,7 @@ steps:
       - git fetch --tags
 
   - name: build
-    image: golang:1.21.0
+    image: golang:1.21.1
     volumes:
       - name: deps
         path: /go
@@ -17,7 +17,7 @@ steps:
       - go build
 
   - name: test
-    image: golang:1.21.0
+    image: golang:1.21.1
     volumes:
       - name: deps
         path: /go
@@ -33,7 +33,7 @@ steps:
       - coverage.txt
 
   - name: linter
-    image: golang:1.21.0
+    image: golang:1.21.1
     volumes:
       - name: deps
         path: /go

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base", ":automergeMinor"],
+  "packageRules": [
+    {
+      "matchPackageNames": ["gopkg.in/yaml.v2"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "matchPackageNames": ["gopkg.in/AlecAivazis/survey.v1"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}

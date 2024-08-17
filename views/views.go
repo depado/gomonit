@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Depado/gomonit/models"
+	"github.com/depado/gomonit/models"
 )
 
 // Index is the main route

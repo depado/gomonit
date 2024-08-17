@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Depado/gomonit/conf"
+	"github.com/depado/gomonit/conf"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

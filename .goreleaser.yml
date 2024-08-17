@@ -1,0 +1,41 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - goarch: [amd64, arm, arm64, 386]
+    goarm: [6, 7]
+    goos: [linux, darwin, windows]
+    ignore:
+      - goos: darwin
+        goarch: 386
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X "github.com/depado/gomonit/cmd.Version={{ .Version }}"
+      - -X "github.com/depado/gomonit/cmd.Build={{ .Commit }}"
+      - -X "github.com/depado/gomonit/cmd.Time={{ .Date }}"
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - templates/**
+      - assets/**
+checksum:
+  name_template: "checksums.txt"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

@@ -7,13 +7,13 @@ export BUILD=$(shell git rev-parse HEAD 2> /dev/null || echo "undefined")
 export BUILDDATE=$(shell LANG=en_us_88591 date)
 BINARY=gomonit
 LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.Build=$(BUILD) -s -w"
-LDFLAGS=-ldflags "-X 'github.com/Depado/gomonit/cmd.Version=$(VERSION)' \
-		-X 'github.com/Depado/gomonit/cmd.Build=$(BUILD)' \
-		-X 'github.com/Depado/gomonit/cmd.Time=$(BUILDDATE)' -s -w"
-PACKEDFLAGS=-ldflags "-X 'github.com/Depado/gomonit/cmd.Version=$(VERSION)' \
-		-X 'github.com/Depado/gomonit/cmd.Build=$(BUILD)' \
-		-X 'github.com/Depado/gomonit/cmd.Time=$(BUILDDATE)' \
-		-X 'github.com/Depado/gomonit/cmd.Packer=upx --best --lzma' -s -w"
+LDFLAGS=-ldflags "-X 'github.com/depado/gomonit/cmd.Version=$(VERSION)' \
+		-X 'github.com/depado/gomonit/cmd.Build=$(BUILD)' \
+		-X 'github.com/depado/gomonit/cmd.Time=$(BUILDDATE)' -s -w"
+PACKEDFLAGS=-ldflags "-X 'github.com/depado/gomonit/cmd.Version=$(VERSION)' \
+		-X 'github.com/depado/gomonit/cmd.Build=$(BUILD)' \
+		-X 'github.com/depado/gomonit/cmd.Time=$(BUILDDATE)' \
+		-X 'github.com/depado/gomonit/cmd.Packer=upx --best --lzma' -s -w"
 
 .PHONY: help
 help:

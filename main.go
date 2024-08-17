@@ -7,9 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Depado/gomonit/conf"
-	"github.com/Depado/gomonit/models"
-	"github.com/Depado/gomonit/views"
+	"github.com/depado/gomonit/conf"
+	"github.com/depado/gomonit/models"
+	"github.com/depado/gomonit/views"
 )
 
 // APIVersion is the current API version.

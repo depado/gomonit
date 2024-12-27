@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", ":automergeMinor"],
+  "extends": ["config:best-practices", ":automergeMinor", ":automergeDigest"],
   "packageRules": [
     {
       "matchPackageNames": ["gopkg.in/yaml.v2"],

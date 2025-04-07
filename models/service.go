@@ -148,8 +148,8 @@ func (s *Service) FetchStatus() {
 		clog.WithError(err).Warn("Couldn't fetch status")
 		return
 	}
-	defer resp.Body.Close()
-	io.Copy(io.Discard, resp.Body) // nolint: errcheck
+	defer resp.Body.Close()        //nolint:errcheck
+	io.Copy(io.Discard, resp.Body) //nolint:errcheck
 
 	d := tp.ReqDuration()
 	s.RespTime = d - (d % time.Millisecond)
@@ -163,7 +163,7 @@ func (s *Service) FetchBuilds() {
 		log.Printf("[%s][ERROR] While requesting build status : %v\n", s.Name, err)
 		return
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 	var all UnparsedBuilds
 	if err = json.NewDecoder(resp.Body).Decode(&all); err != nil {
 		log.Printf("[%s][ERROR] Couldn't decode response : %v\n", s.Name, err)
@@ -195,7 +195,7 @@ func (s *Service) FetchCommits() {
 		clog.WithError(err).Warn("Couldn't perform request")
 		return
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 	if res.StatusCode != http.StatusOK {
 		clog.WithField("code", res.StatusCode).Warn("Couldn't retrieve commits")
 		return
@@ -227,7 +227,7 @@ func (s *Service) FetchRepoInfos() {
 		clog.WithError(err).Error("Couldn't perform request")
 		return
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 	var repo GHRepo
 	if err = json.NewDecoder(res.Body).Decode(&repo); err != nil {
 		clog.WithError(err).Error("Couldn't decode response")

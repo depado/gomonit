@@ -2,7 +2,7 @@ module github.com/depado/gomonit
 
 go 1.25.0
 
-toolchain go1.26.4
+toolchain go1.26.5
 
 require (
 	github.com/Depado/conftags v1.0.0

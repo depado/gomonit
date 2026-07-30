@@ -45,10 +45,10 @@ type Commit struct {
 		URL          string `json:"url"`
 		CommentCount int    `json:"comment_count"`
 		Verification struct {
-			Verified  bool        `json:"verified"`
-			Reason    string      `json:"reason"`
-			Signature interface{} `json:"signature"`
-			Payload   interface{} `json:"payload"`
+			Verified  bool   `json:"verified"`
+			Reason    string `json:"reason"`
+			Signature any    `json:"signature"`
+			Payload   any    `json:"payload"`
 		} `json:"verification"`
 	} `json:"commit"`
 	URL         string `json:"url"`
@@ -119,7 +119,7 @@ type GHRepo struct {
 	TeamsURL         string         `json:"teams_url"`
 	TreesURL         string         `json:"trees_url"`
 	Homepage         string         `json:"homepage"`
-	Language         interface{}    `json:"language"`
+	Language         any            `json:"language"`
 	ForksCount       int            `json:"forks_count"`
 	StargazersCount  int            `json:"stargazers_count"`
 	WatchersCount    int            `json:"watchers_count"`
